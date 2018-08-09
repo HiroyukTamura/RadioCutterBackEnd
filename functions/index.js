@@ -6,8 +6,14 @@ admin.initializeApp();
 // Saves a message to the Firebase Realtime Database but sanitizes the text by removing swearwords.
 exports.askAuthToken = functions.https.onCall((data, context) => {
     const offset = data.offset;
-    const length = data.length;
+    const keyLen = data.keyLen;
     const version = data.version;
+
+    if (!(typeof offset === 'number'))
+        throw new functions.https.HttpsError('invalid-argument', 'offset is wrong : offset : '+ offset);
+    else if (!(typeof keyLen === 'number'))
+        throw new functions.https.HttpsError('invalid-argument', 'offset is wrong : length : '+ keyLen);
+
     let segment;
     switch (version) {
         case 4:
@@ -24,7 +30,7 @@ exports.askAuthToken = functions.https.onCall((data, context) => {
             throw new functions.https.HttpsError('invalid-argument', 'data.version is wrong : version : '+ version);
     }
 
-    exec(`dd if=PartialKey/${segment} bs=1 skip=${offset} count=${length}`, (err, stdout, stderr) => {
+    exec(`dd if=PartialKey/${segment} bs=1 skip=${offset} count=${keyLen}`, (err, stdout, stderr) => {
         if (err) {
             console.error(err);
             throw new functions.https.HttpsError('unknown', err);
