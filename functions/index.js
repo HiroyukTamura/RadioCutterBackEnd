@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const { exec } = require('child_process');
+const { execSync } = require('child_process');
 admin.initializeApp();
 
 // Saves a message to the Firebase Realtime Database but sanitizes the text by removing swearwords.
@@ -12,7 +12,7 @@ exports.askAuthToken = functions.https.onCall((data, context) => {
     if (!(typeof offset === 'number'))
         throw new functions.https.HttpsError('invalid-argument', 'offset is wrong : offset : '+ offset);
     else if (!(typeof keyLen === 'number'))
-        throw new functions.https.HttpsError('invalid-argument', 'offset is wrong : length : '+ keyLen);
+        throw new functions.https.HttpsError('invalid-argument', 'keyLen is wrong : length : '+ keyLen);
 
     let segment;
     switch (version) {
@@ -27,15 +27,10 @@ exports.askAuthToken = functions.https.onCall((data, context) => {
             break;
         default:
             console.log("data.version is wrong : version : "+ version);
-            throw new functions.https.HttpsError('invalid-argument', 'data.version is wrong : version : '+ version);
+            throw new functions.https.HttpsError('invalid-argument', 'version is wrong : version : '+ version);
     }
 
-    exec(`dd if=PartialKey/${segment} bs=1 skip=${offset} count=${keyLen}`, (err, stdout, stderr) => {
-        if (err) {
-            console.error(err);
-            throw new functions.https.HttpsError('unknown', err);
-        }
-        console.log(stdout);
-        return err;
-    });
+    const stdout = execSync(`dd if=PartialKey/${segment} bs=1 skip=${offset} count=${keyLen} 2> /dev/null | base64`).toString();
+    console.log(stdout);
+    return stdout;
 });
