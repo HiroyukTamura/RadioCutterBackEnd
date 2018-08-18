@@ -48,6 +48,8 @@ exports.getWeekPrg = functions.https.onRequest(async (req, resp) => {
         const body = await rp(url).catch(e => {
            console.error(e);
         });
+        if (!body) continue;
+
         const ttl = $(body).find('ttl').html();
         const srvtime = $(body).find('srvtime').html();
         await $(body).find('progs').each(async item => {
