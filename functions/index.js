@@ -1,7 +1,11 @@
+"use strict";
+
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { execSync } = require('child_process');
 const request = require('request');
+const rp = require('request-promise');
+const $ = require('jQuery');
 admin.initializeApp();
 
 // Saves a message to the Firebase Realtime Database but sanitizes the text by removing swearwords.
@@ -36,25 +40,32 @@ exports.askAuthToken = functions.https.onCall((data, context) => {
     return stdout;
 });
 
+exports.getWeekPrg = functions.https.onRequest(async (req, resp) => {
+    const fireStore = admin.firestore();
+    const stationCodeArr = ["802","ABC","ABS","AFB","AIR-G","ALPHA-STATION","BAYFM78","BSN","BSS","CBC","CCL","CRK","CROSSFM","CRT","DATEFM","E-RADIO","FBC","FM_OITA","FM_OKINAWA","FM-FUJI","FMAICHI","FMF","FMFUKUOKA","FMGIFU","FMGUNMA","FMI","FMJ","FMK","FMKAGAWA","FMMIE","FMN","FMNAGASAKI","FMNIIGATA","FMO","FMPORT","FMT","FMTOYAMA","FMY","GBS","HBC","HELLOFIVE","HFM","HOUSOU-DAIGAKU","IBC","IBS","INT","JOAB","JOAK-FM","JOAK","JOAK","JOBK","JOCK","JOCK","JOEU-FM","JOFK","JOHK","JOIK","JOLK","JORF","JOZK","JRT","K-MIX","KBC","KBS","KISSFMKOBE","KNB","KRY","LFR","LOVEFM","MBC","MBS","MRO","MRT","MYUFM","NACK5","NBC","NORTHWAVE","OBC","OBS","QRR","RAB","RADIOBERRY","RADIONEO","RBC","RCC","RFC","RKB","RKC","RKK","RN1","RN2","RNB","RNC","ROK","RSK","SBC","SBS","STV","TBC","TBS","TOKAIRADIO","WBS","YBC","YBS","YFM","ZIP-FM"];
+    for (const stCode of stationCodeArr) {
+        const url = 'http://radiko.jp/v3/program/station/weekly/'+ stCode +'.xml';
+        const body = await rp(url).catch(e => {
+           console.error(e);
+        });
+        const ttl = $(body).find('ttl').html();
+        const srvtime = $(body).find('srvtime').html();
+        await $(body).find('progs').each(async item => {
+            const date = item.find('date').html();
+            const ref = await fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
+                ttl: ttl,
+                srvtime: srvtime,
+                xml: item.html()
+            }).catch(e => {
+                console.error(e);
+            });
 
-// void request1st() throws IOException, HttpChainException {
-// @Cleanup Response response = request(AUTH1_URL, HEADERS_AUTH1, null);
-//     if (!response.isSuccessful())
-//         throw new HttpChainException(HTTP_ERROR, TAG, "errCode: "+ response.code() + "e rrMsg:"+ response.message(), "request1st");
-//
-//     authToken = response.header("x-radiko-authtoken");
-//     int keyLen = Integer.parseInt(response.header("x-radiko-keylength"));
-//     int offset = Integer.parseInt(response.header("x-radiko-keyoffset"));
-//     String splicedStr = AUTH_KEY.substring(offset, keyLen + offset);
-//     partialKey = Base64.encodeToString(splicedStr.getBytes(), Base64.NO_WRAP | Base64.URL_SAFE);
-// }
+            console.info('ref', ref);
+        });
 
-// .add("Access-Control-Request-Headers", "x-radiko-app,x-radiko-app-version,x-radiko-device,x-radiko-user")
-//     .add("X-Radiko-App", "pc_html5")
-//     .add("X-Radiko-App-Version", "0.0.1")
-//     .add("X-Radiko-User", "dummy_user")
-//     .add("X-Radiko-Device", "pc")
-//     .build();
+        await sleep(5 * 1000);
+    }
+});
 
 // exports.request1st = functions.https.onCall((data, context) => {
 exports.date = functions.https.onRequest((req, res) => {
@@ -94,8 +105,7 @@ exports.date = functions.https.onRequest((req, res) => {
             const splicedStr = authKey.substr(keyOffset, keyLen);
             const partialKey = atob(splicedStr);
             console.log('body', body);
-            console.log('response', response);
-            console.log('partialKey', partialKey);
+            console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
         } else {
             console.log('httpErr', response.statusCode, body);
             postError('httpErr', response.statusCode, body);
@@ -121,3 +131,5 @@ function postError(witchErr, resCode, body) {
 function atob(a) {
     return new Buffer(a, 'base64').toString('binary');
 }
+
+const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
