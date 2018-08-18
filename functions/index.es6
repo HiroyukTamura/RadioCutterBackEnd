@@ -5,8 +5,17 @@ const admin = require('firebase-admin');
 const { execSync } = require('child_process');
 const request = require('request');
 const rp = require('request-promise');
-const $ = require('jQuery');
+const cheerio = require('cheerio');
+
 admin.initializeApp();
+const fireStore = admin.firestore();
+fireStore.settings({
+    timestampsInSnapshots: true
+});
+
+// const firestore = new Firestore();
+// const settings = {timestampsInSnapshots: true};
+// firestore.settings(settings);
 
 // Saves a message to the Firebase Realtime Database but sanitizes the text by removing swearwords.
 exports.askAuthToken = functions.https.onCall((data, context) => {
@@ -40,19 +49,28 @@ exports.askAuthToken = functions.https.onCall((data, context) => {
     return stdout;
 });
 
-exports.getWeekPrg = functions.https.onRequest(async (req, resp) => {
-    const fireStore = admin.firestore();
+exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
+    setTimeout(() => {
+        // May not execute if function's timeout is <2 minutes
+        console.log('Function running...');
+        res.end();
+    }, 8 * 60 * 1000); // 8 minute delay
+
     const stationCodeArr = ["802","ABC","ABS","AFB","AIR-G","ALPHA-STATION","BAYFM78","BSN","BSS","CBC","CCL","CRK","CROSSFM","CRT","DATEFM","E-RADIO","FBC","FM_OITA","FM_OKINAWA","FM-FUJI","FMAICHI","FMF","FMFUKUOKA","FMGIFU","FMGUNMA","FMI","FMJ","FMK","FMKAGAWA","FMMIE","FMN","FMNAGASAKI","FMNIIGATA","FMO","FMPORT","FMT","FMTOYAMA","FMY","GBS","HBC","HELLOFIVE","HFM","HOUSOU-DAIGAKU","IBC","IBS","INT","JOAB","JOAK-FM","JOAK","JOAK","JOBK","JOCK","JOCK","JOEU-FM","JOFK","JOHK","JOIK","JOLK","JORF","JOZK","JRT","K-MIX","KBC","KBS","KISSFMKOBE","KNB","KRY","LFR","LOVEFM","MBC","MBS","MRO","MRT","MYUFM","NACK5","NBC","NORTHWAVE","OBC","OBS","QRR","RAB","RADIOBERRY","RADIONEO","RBC","RCC","RFC","RKB","RKC","RKK","RN1","RN2","RNB","RNC","ROK","RSK","SBC","SBS","STV","TBC","TBS","TOKAIRADIO","WBS","YBC","YBS","YFM","ZIP-FM"];
     for (const stCode of stationCodeArr) {
         const url = 'http://radiko.jp/v3/program/station/weekly/'+ stCode +'.xml';
         const body = await rp(url).catch(e => {
            console.error(e);
         });
+
         if (!body) continue;
+        const $ = cheerio.load(body);
 
         const ttl = $(body).find('ttl').html();
         const srvtime = $(body).find('srvtime').html();
-        await $(body).find('progs').each(async item => {
+        const progs = $(body).find('progs');
+        for(let i=0; i<progs.length; i++){
+            const item = progs.eq(i);
             const date = item.find('date').html();
             const ref = await fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
                 ttl: ttl,
@@ -63,10 +81,12 @@ exports.getWeekPrg = functions.https.onRequest(async (req, resp) => {
             });
 
             console.info('ref', ref);
-        });
+        }
 
         await sleep(5 * 1000);
     }
+
+    res.status(200).end();
 });
 
 // exports.request1st = functions.https.onCall((data, context) => {
@@ -116,13 +136,12 @@ exports.date = functions.https.onRequest((req, res) => {
 });
 
 function postError(witchErr, resCode, body) {
-    const fireStotre = admin.firestore();
-    fireStotre.collection('request1st')
+    fireStore.collection('request1st')
         .doc().set({
             witchErr: witchErr,
             statusCode: resCode,
             body: body,
-            timestamp: fireStotre.serverTimestamp()
+            timestamp: fireStore.serverTimestamp().toDate()
     }).then(ref => {
         console.log('ログポスト完了 ', ref);
     }).catch(e => {

@@ -10,8 +10,13 @@ var _require = require('child_process'),
 
 var request = require('request');
 var rp = require('request-promise');
-var $ = require('jQuery');
+var cheerio = require('cheerio');
+
 admin.initializeApp();
+
+var firestore = new Firestore();
+var settings = { timestampsInSnapshots: true };
+firestore.settings(settings);
 
 // Saves a message to the Firebase Realtime Database but sanitizes the text by removing swearwords.
 exports.askAuthToken = functions.https.onCall(function (data, context) {
@@ -43,158 +48,128 @@ exports.askAuthToken = functions.https.onCall(function (data, context) {
 });
 
 exports.getWeekPrg = functions.https.onRequest(function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, resp) {
-        var fireStore, stationCodeArr, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, _ret;
+    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, resp) {
+        var fireStore, stationCodeArr, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, url, body, $, ttl, srvtime, progs, i, item, date, ref;
 
-        return regeneratorRuntime.wrap(function _callee2$(_context3) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
-                switch (_context3.prev = _context3.next) {
+                switch (_context.prev = _context.next) {
                     case 0:
                         fireStore = admin.firestore();
                         stationCodeArr = ["802", "ABC", "ABS", "AFB", "AIR-G", "ALPHA-STATION", "BAYFM78", "BSN", "BSS", "CBC", "CCL", "CRK", "CROSSFM", "CRT", "DATEFM", "E-RADIO", "FBC", "FM_OITA", "FM_OKINAWA", "FM-FUJI", "FMAICHI", "FMF", "FMFUKUOKA", "FMGIFU", "FMGUNMA", "FMI", "FMJ", "FMK", "FMKAGAWA", "FMMIE", "FMN", "FMNAGASAKI", "FMNIIGATA", "FMO", "FMPORT", "FMT", "FMTOYAMA", "FMY", "GBS", "HBC", "HELLOFIVE", "HFM", "HOUSOU-DAIGAKU", "IBC", "IBS", "INT", "JOAB", "JOAK-FM", "JOAK", "JOAK", "JOBK", "JOCK", "JOCK", "JOEU-FM", "JOFK", "JOHK", "JOIK", "JOLK", "JORF", "JOZK", "JRT", "K-MIX", "KBC", "KBS", "KISSFMKOBE", "KNB", "KRY", "LFR", "LOVEFM", "MBC", "MBS", "MRO", "MRT", "MYUFM", "NACK5", "NBC", "NORTHWAVE", "OBC", "OBS", "QRR", "RAB", "RADIOBERRY", "RADIONEO", "RBC", "RCC", "RFC", "RKB", "RKC", "RKK", "RN1", "RN2", "RNB", "RNC", "ROK", "RSK", "SBC", "SBS", "STV", "TBC", "TBS", "TOKAIRADIO", "WBS", "YBC", "YBS", "YFM", "ZIP-FM"];
-                        _loop = /*#__PURE__*/regeneratorRuntime.mark(function _loop(stCode) {
-                            var url, body, ttl, srvtime;
-                            return regeneratorRuntime.wrap(function _loop$(_context2) {
-                                while (1) {
-                                    switch (_context2.prev = _context2.next) {
-                                        case 0:
-                                            url = 'http://radiko.jp/v3/program/station/weekly/' + stCode + '.xml';
-                                            _context2.next = 3;
-                                            return rp(url).catch(function (e) {
-                                                console.error(e);
-                                            });
-
-                                        case 3:
-                                            body = _context2.sent;
-
-                                            if (body) {
-                                                _context2.next = 6;
-                                                break;
-                                            }
-
-                                            return _context2.abrupt('return', 'continue');
-
-                                        case 6:
-                                            ttl = $(body).find('ttl').html();
-                                            srvtime = $(body).find('srvtime').html();
-                                            _context2.next = 10;
-                                            return $(body).find('progs').each(function () {
-                                                var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(item) {
-                                                    var date, ref;
-                                                    return regeneratorRuntime.wrap(function _callee$(_context) {
-                                                        while (1) {
-                                                            switch (_context.prev = _context.next) {
-                                                                case 0:
-                                                                    date = item.find('date').html();
-                                                                    _context.next = 3;
-                                                                    return fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
-                                                                        ttl: ttl,
-                                                                        srvtime: srvtime,
-                                                                        xml: item.html()
-                                                                    }).catch(function (e) {
-                                                                        console.error(e);
-                                                                    });
-
-                                                                case 3:
-                                                                    ref = _context.sent;
-
-
-                                                                    console.info('ref', ref);
-
-                                                                case 5:
-                                                                case 'end':
-                                                                    return _context.stop();
-                                                            }
-                                                        }
-                                                    }, _callee, undefined);
-                                                }));
-
-                                                return function (_x3) {
-                                                    return _ref2.apply(this, arguments);
-                                                };
-                                            }());
-
-                                        case 10:
-                                            _context2.next = 12;
-                                            return sleep(5 * 1000);
-
-                                        case 12:
-                                        case 'end':
-                                            return _context2.stop();
-                                    }
-                                }
-                            }, _loop, undefined);
-                        });
                         _iteratorNormalCompletion = true;
                         _didIteratorError = false;
                         _iteratorError = undefined;
-                        _context3.prev = 6;
+                        _context.prev = 5;
                         _iterator = stationCodeArr[Symbol.iterator]();
 
-                    case 8:
+                    case 7:
                         if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                            _context3.next = 17;
+                            _context.next = 35;
                             break;
                         }
 
                         stCode = _step.value;
-                        return _context3.delegateYield(_loop(stCode), 't0', 11);
+                        url = 'http://radiko.jp/v3/program/station/weekly/' + stCode + '.xml';
+                        _context.next = 12;
+                        return rp(url).catch(function (e) {
+                            console.error(e);
+                        });
 
-                    case 11:
-                        _ret = _context3.t0;
+                    case 12:
+                        body = _context.sent;
 
-                        if (!(_ret === 'continue')) {
-                            _context3.next = 14;
+                        if (body) {
+                            _context.next = 15;
                             break;
                         }
 
-                        return _context3.abrupt('continue', 14);
+                        return _context.abrupt('continue', 32);
 
-                    case 14:
+                    case 15:
+                        $ = cheerio.load(body);
+                        ttl = $(body).find('ttl').html();
+                        srvtime = $(body).find('srvtime').html();
+                        progs = $(body).find('progs');
+                        i = 0;
+
+                    case 20:
+                        if (!(i < progs.length)) {
+                            _context.next = 30;
+                            break;
+                        }
+
+                        item = progs.eq(i);
+                        date = item.find('date').html();
+                        _context.next = 25;
+                        return fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
+                            ttl: ttl,
+                            srvtime: srvtime,
+                            xml: item.html()
+                        }).catch(function (e) {
+                            console.error(e);
+                        });
+
+                    case 25:
+                        ref = _context.sent;
+
+
+                        console.info('ref', ref);
+
+                    case 27:
+                        i++;
+                        _context.next = 20;
+                        break;
+
+                    case 30:
+                        _context.next = 32;
+                        return sleep(5 * 1000);
+
+                    case 32:
                         _iteratorNormalCompletion = true;
-                        _context3.next = 8;
+                        _context.next = 7;
                         break;
 
-                    case 17:
-                        _context3.next = 23;
+                    case 35:
+                        _context.next = 41;
                         break;
 
-                    case 19:
-                        _context3.prev = 19;
-                        _context3.t1 = _context3['catch'](6);
+                    case 37:
+                        _context.prev = 37;
+                        _context.t0 = _context['catch'](5);
                         _didIteratorError = true;
-                        _iteratorError = _context3.t1;
+                        _iteratorError = _context.t0;
 
-                    case 23:
-                        _context3.prev = 23;
-                        _context3.prev = 24;
+                    case 41:
+                        _context.prev = 41;
+                        _context.prev = 42;
 
                         if (!_iteratorNormalCompletion && _iterator.return) {
                             _iterator.return();
                         }
 
-                    case 26:
-                        _context3.prev = 26;
+                    case 44:
+                        _context.prev = 44;
 
                         if (!_didIteratorError) {
-                            _context3.next = 29;
+                            _context.next = 47;
                             break;
                         }
 
                         throw _iteratorError;
 
-                    case 29:
-                        return _context3.finish(26);
+                    case 47:
+                        return _context.finish(44);
 
-                    case 30:
-                        return _context3.finish(23);
+                    case 48:
+                        return _context.finish(41);
 
-                    case 31:
+                    case 49:
                     case 'end':
-                        return _context3.stop();
+                        return _context.stop();
                 }
             }
-        }, _callee2, undefined, [[6, 19, 23, 31], [24,, 26, 30]]);
+        }, _callee, undefined, [[5, 37, 41, 49], [42,, 44, 48]]);
     }));
 
     return function (_x, _x2) {
@@ -254,7 +229,7 @@ function postError(witchErr, resCode, body) {
         witchErr: witchErr,
         statusCode: resCode,
         body: body,
-        timestamp: fireStotre.serverTimestamp()
+        timestamp: fireStotre.serverTimestamp().toDate()
     }).then(function (ref) {
         console.log('ログポスト完了 ', ref);
     }).catch(function (e) {
