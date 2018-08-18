@@ -75,7 +75,8 @@ exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
             const ref = await fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
                 ttl: ttl,
                 srvtime: srvtime,
-                xml: item.html()
+                date: date,
+                xml: '<progs>'+ item.html() +'</progs>'/*todo これ*/
             }).catch(e => {
                 console.error(e);
             });
