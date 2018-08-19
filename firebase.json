@@ -2,6 +2,14 @@
   "functions": {
     "predeploy": [
 
+    ],
+    "ignore": [
+      "README.md",
+      "package-lock.json",
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "index.es6"
     ]
   }
 }
