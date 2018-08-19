@@ -160,7 +160,7 @@ exports.request1st = functions.https.onRequest(async (req, res) => {
         }
     };
 
-    const response = rp(options).catch(e => {
+    const response = await rp(options).catch(e => {
         console.error(e);
     });
 
@@ -171,29 +171,28 @@ exports.request1st = functions.https.onRequest(async (req, res) => {
 
         const authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
         if (!authToken || !keyLen || !keyOffset) {
-            console.log('httpErr', response.statusCode, body);
-            postError('err', response.statusCode, body);
+            console.log('httpErr', response.statusCode, response.body);
+            postError('err', response.body);
             return;
         }
         const splicedStr = authKey.substr(keyOffset, keyLen);
         const partialKey = atob(splicedStr);
-        console.log('body', body);
+        console.log('body', response.body);
         console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
         res.status(200).end();
 
     } else {
-        console.log('httpErr', response.statusCode, body);
-        return postError('httpErr', response.statusCode, body);
+        console.log('httpErr', e);
+        return postError('httpErr', e);
     }
 });
 
-function postError(witchErr, resCode, body) {
+function postError(witchErr, e) {
     fireStore.collection('request1st')
         .doc().set({
             witchErr: witchErr,
-            statusCode: resCode,
-            body: body,
-            timestamp: fireStore.serverTimestamp().toDate()
+            error: e
+            // timestamp: fireStore.serverTimestamp().toDate()
     }).then(ref => {
         console.log('ログポスト完了 ', ref);
     }).catch(e => {
@@ -205,4 +204,4 @@ function atob(a) {
     return new Buffer(a, 'base64').toString('binary');
 }
 
-const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
+// const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));

@@ -300,7 +300,7 @@ exports.getWeekPrg9 = functions.https.onRequest(function () {
 
 var getWeekPrg = function () {
     var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(arrayNum) {
-        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, url, _body, $, ttl, srvtime, progs, i, item, date;
+        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, url, body, $, ttl, srvtime, progs, i, item, date;
 
         return regeneratorRuntime.wrap(function _callee11$(_context11) {
             while (1) {
@@ -326,9 +326,9 @@ var getWeekPrg = function () {
                         });
 
                     case 10:
-                        _body = _context11.sent;
+                        body = _context11.sent;
 
-                        if (_body) {
+                        if (body) {
                             _context11.next = 13;
                             break;
                         }
@@ -336,10 +336,10 @@ var getWeekPrg = function () {
                         return _context11.abrupt('continue', 27);
 
                     case 13:
-                        $ = cheerio.load(_body);
-                        ttl = $(_body).find('ttl').html();
-                        srvtime = $(_body).find('srvtime').html();
-                        progs = $(_body).find('progs');
+                        $ = cheerio.load(body);
+                        ttl = $(body).find('ttl').html();
+                        srvtime = $(body).find('srvtime').html();
+                        progs = $(body).find('progs');
                         i = 0;
 
                     case 18:
@@ -448,12 +448,16 @@ exports.request1st = functions.https.onRequest(function () {
                                 'X-Radiko-Device': 'pc'
                             }
                         };
-                        response = rp(options).catch(function (e) {
+                        _context12.next = 3;
+                        return rp(options).catch(function (e) {
                             console.error(e);
                         });
 
+                    case 3:
+                        response = _context12.sent;
+
                         if (!(response.statusCode == 200)) {
-                            _context12.next = 18;
+                            _context12.next = 20;
                             break;
                         }
 
@@ -463,30 +467,30 @@ exports.request1st = functions.https.onRequest(function () {
                         authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
 
                         if (!(!authToken || !keyLen || !keyOffset)) {
-                            _context12.next = 11;
+                            _context12.next = 13;
                             break;
                         }
 
-                        console.log('httpErr', response.statusCode, body);
-                        postError('err', response.statusCode, body);
+                        console.log('httpErr', response.statusCode, response.body);
+                        postError('err', response.body);
                         return _context12.abrupt('return');
 
-                    case 11:
+                    case 13:
                         splicedStr = authKey.substr(keyOffset, keyLen);
                         partialKey = atob(splicedStr);
 
-                        console.log('body', body);
+                        console.log('body', response.body);
                         console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
                         res.status(200).end();
 
-                        _context12.next = 20;
+                        _context12.next = 22;
                         break;
 
-                    case 18:
-                        console.log('httpErr', response.statusCode, body);
-                        return _context12.abrupt('return', postError('httpErr', response.statusCode, body));
-
                     case 20:
+                        console.log('httpErr', e);
+                        return _context12.abrupt('return', postError('httpErr', e));
+
+                    case 22:
                     case 'end':
                         return _context12.stop();
                 }
@@ -499,12 +503,11 @@ exports.request1st = functions.https.onRequest(function () {
     };
 }());
 
-function postError(witchErr, resCode, body) {
+function postError(witchErr, e) {
     fireStore.collection('request1st').doc().set({
         witchErr: witchErr,
-        statusCode: resCode,
-        body: body,
-        timestamp: fireStore.serverTimestamp().toDate()
+        error: e
+        // timestamp: fireStore.serverTimestamp().toDate()
     }).then(function (ref) {
         console.log('ログポスト完了 ', ref);
     }).catch(function (e) {
