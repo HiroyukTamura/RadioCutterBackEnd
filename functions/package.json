@@ -29,7 +29,7 @@
   },
   "private": true,
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "../heroku/index.es6",
   "author": "Hiroyuk Tamura",
   "license": "ISC"
 }

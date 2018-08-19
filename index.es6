@@ -58,14 +58,14 @@ const stationCodeArr = [["802","ABC","ABS","AFB","AIR-G","ALPHA-STATION","BAYFM7
     ["RN2","RNB","RNC","ROK","RSK","SBC","SBS","STV","TBC","TBS"],
     ["TOKAIRADIO","WBS","YBC","YBS","YFM","ZIP-FM"]];
 
-exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
-    if (req.body.pass != 'radiko' || !req.body.witch || req.body.witch > 9)
-        res.status(403).end();
-    else {
-        await getWeekPrg(req.body.witch);
-        res.status(200).end();
-    }
-});
+// exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
+//     if (req.body.pass != 'radiko' || !req.body.witch || req.body.witch > 9)
+//         res.status(403).end();
+//     else {
+//         await getWeekPrg(req.body.witch);
+//         res.status(200).end();
+//     }
+// });
 
 const getWeekPrg = async (arrayNum) => {
     for (const stCode of stationCodeArr[arrayNum]) {
