@@ -15,6 +15,7 @@ fireStore.settings({
     timestampsInSnapshots: true
 });
 
+
 exports.askAuthToken = functions.https.onCall((data, context) => {
     const offset = data.offset;
     const keyLen = data.keyLen;
