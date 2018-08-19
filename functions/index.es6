@@ -139,8 +139,9 @@ const getWeekPrg = async (arrayNum) => {
 
 
 // exports.request1st = functions.https.onCall((data, context) => {
-exports.date = functions.https.onRequest((req, res) => {
+exports.request1st = functions.https.onRequest(async (req, res) => {
     const options = {
+        resolveWithFullResponse: true,
         url: 'https://radiko.jp/v2/api/auth1',
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
@@ -159,29 +160,31 @@ exports.date = functions.https.onRequest((req, res) => {
         }
     };
 
-    request(options, (error, response, body)=> {
-        console.log("request");
-
-        if (!error && response.statusCode == 200) {
-            const authToken = response.headers['x-radiko-authtoken'];
-            const keyLen = response.headers['x-radiko-keylength'];
-            const keyOffset  = response.headers['x-radiko-keyoffset'];
-
-            const authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
-            if (!authToken || !keyLen || !keyOffset) {
-                console.log('httpErr', response.statusCode, body);
-                postError('err', response.statusCode, body);
-                return;
-            }
-            const splicedStr = authKey.substr(keyOffset, keyLen);
-            const partialKey = atob(splicedStr);
-            console.log('body', body);
-            console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
-        } else {
-            console.log('httpErr', response.statusCode, body);
-            postError('httpErr', response.statusCode, body);
-        }
+    const response = rp(options).catch(e => {
+        console.error(e);
     });
+
+    if (response.statusCode == 200) {
+        const authToken = response.headers['x-radiko-authtoken'];
+        const keyLen = response.headers['x-radiko-keylength'];
+        const keyOffset  = response.headers['x-radiko-keyoffset'];
+
+        const authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
+        if (!authToken || !keyLen || !keyOffset) {
+            console.log('httpErr', response.statusCode, body);
+            postError('err', response.statusCode, body);
+            return;
+        }
+        const splicedStr = authKey.substr(keyOffset, keyLen);
+        const partialKey = atob(splicedStr);
+        console.log('body', body);
+        console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
+        res.status(200).end();
+
+    } else {
+        console.log('httpErr', response.statusCode, body);
+        return postError('httpErr', response.statusCode, body);
+    }
 });
 
 function postError(witchErr, resCode, body) {

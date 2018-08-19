@@ -300,7 +300,7 @@ exports.getWeekPrg9 = functions.https.onRequest(function () {
 
 var getWeekPrg = function () {
     var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(arrayNum) {
-        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, url, body, $, ttl, srvtime, progs, i, item, date;
+        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, url, _body, $, ttl, srvtime, progs, i, item, date;
 
         return regeneratorRuntime.wrap(function _callee11$(_context11) {
             while (1) {
@@ -326,9 +326,9 @@ var getWeekPrg = function () {
                         });
 
                     case 10:
-                        body = _context11.sent;
+                        _body = _context11.sent;
 
-                        if (body) {
+                        if (_body) {
                             _context11.next = 13;
                             break;
                         }
@@ -336,10 +336,10 @@ var getWeekPrg = function () {
                         return _context11.abrupt('continue', 27);
 
                     case 13:
-                        $ = cheerio.load(body);
-                        ttl = $(body).find('ttl').html();
-                        srvtime = $(body).find('srvtime').html();
-                        progs = $(body).find('progs');
+                        $ = cheerio.load(_body);
+                        ttl = $(_body).find('ttl').html();
+                        srvtime = $(_body).find('srvtime').html();
+                        progs = $(_body).find('progs');
                         i = 0;
 
                     case 18:
@@ -422,50 +422,82 @@ var getWeekPrg = function () {
 }();
 
 // exports.request1st = functions.https.onCall((data, context) => {
-exports.date = functions.https.onRequest(function (req, res) {
-    var options = {
-        url: 'https://radiko.jp/v2/api/auth1',
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
-            'Accept-Encoding': 'ja,en-US;q=0.9,en;q=0.8',
-            'Access-Control-Request-Method': 'GET',
-            'Accept': '*/*',
-            'DNT': '1',
-            'Host': 'radiko.jp',
-            'Origin': 'http://radiko.jp',
-            'Referer': 'http://radiko.jp/',
-            'Access-Control-Request-Headers': 'x-radiko-app,x-radiko-app-version,x-radiko-device,x-radiko-user',
-            'X-Radiko-App': 'pc_html5',
-            'X-Radiko-App-Version': '0.0.1',
-            'X-Radiko-User': 'DUMMY_USER',
-            'X-Radiko-Device': 'pc'
-        }
-    };
+exports.request1st = functions.https.onRequest(function () {
+    var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(req, res) {
+        var options, response, authToken, keyLen, keyOffset, authKey, splicedStr, partialKey;
+        return regeneratorRuntime.wrap(function _callee12$(_context12) {
+            while (1) {
+                switch (_context12.prev = _context12.next) {
+                    case 0:
+                        options = {
+                            resolveWithFullResponse: true,
+                            url: 'https://radiko.jp/v2/api/auth1',
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+                                'Accept-Encoding': 'ja,en-US;q=0.9,en;q=0.8',
+                                'Access-Control-Request-Method': 'GET',
+                                'Accept': '*/*',
+                                'DNT': '1',
+                                'Host': 'radiko.jp',
+                                'Origin': 'http://radiko.jp',
+                                'Referer': 'http://radiko.jp/',
+                                'Access-Control-Request-Headers': 'x-radiko-app,x-radiko-app-version,x-radiko-device,x-radiko-user',
+                                'X-Radiko-App': 'pc_html5',
+                                'X-Radiko-App-Version': '0.0.1',
+                                'X-Radiko-User': 'DUMMY_USER',
+                                'X-Radiko-Device': 'pc'
+                            }
+                        };
+                        response = rp(options).catch(function (e) {
+                            console.error(e);
+                        });
 
-    request(options, function (error, response, body) {
-        console.log("request");
+                        if (!(response.statusCode == 200)) {
+                            _context12.next = 18;
+                            break;
+                        }
 
-        if (!error && response.statusCode == 200) {
-            var authToken = response.headers['x-radiko-authtoken'];
-            var keyLen = response.headers['x-radiko-keylength'];
-            var keyOffset = response.headers['x-radiko-keyoffset'];
+                        authToken = response.headers['x-radiko-authtoken'];
+                        keyLen = response.headers['x-radiko-keylength'];
+                        keyOffset = response.headers['x-radiko-keyoffset'];
+                        authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
 
-            var authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
-            if (!authToken || !keyLen || !keyOffset) {
-                console.log('httpErr', response.statusCode, body);
-                postError('err', response.statusCode, body);
-                return;
+                        if (!(!authToken || !keyLen || !keyOffset)) {
+                            _context12.next = 11;
+                            break;
+                        }
+
+                        console.log('httpErr', response.statusCode, body);
+                        postError('err', response.statusCode, body);
+                        return _context12.abrupt('return');
+
+                    case 11:
+                        splicedStr = authKey.substr(keyOffset, keyLen);
+                        partialKey = atob(splicedStr);
+
+                        console.log('body', body);
+                        console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
+                        res.status(200).end();
+
+                        _context12.next = 20;
+                        break;
+
+                    case 18:
+                        console.log('httpErr', response.statusCode, body);
+                        return _context12.abrupt('return', postError('httpErr', response.statusCode, body));
+
+                    case 20:
+                    case 'end':
+                        return _context12.stop();
+                }
             }
-            var splicedStr = authKey.substr(keyOffset, keyLen);
-            var partialKey = atob(splicedStr);
-            console.log('body', body);
-            console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
-        } else {
-            console.log('httpErr', response.statusCode, body);
-            postError('httpErr', response.statusCode, body);
-        }
-    });
-});
+        }, _callee12, undefined);
+    }));
+
+    return function (_x22, _x23) {
+        return _ref12.apply(this, arguments);
+    };
+}());
 
 function postError(witchErr, resCode, body) {
     fireStore.collection('request1st').doc().set({
