@@ -31,5 +31,9 @@
   "version": "1.0.0",
   "main": "../heroku/index.es6",
   "author": "Hiroyuk Tamura",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": "8.9.1",
+    "npm":  "6.1.0"
+  }
 }
