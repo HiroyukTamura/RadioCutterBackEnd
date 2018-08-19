@@ -45,14 +45,73 @@ exports.askAuthToken = functions.https.onCall((data, context) => {
     return stdout;
 });
 
+const stationCodeArr = [["802","ABC","ABS","AFB","AIR-G","ALPHA-STATION","BAYFM78","BSN","BSS","CBC"],
+    ["CCL","CRK","CROSSFM","CRT","DATEFM","E-RADIO","FBC","FM_OITA","FM_OKINAWA","FM-FUJI"],
+    ["FMAICHI","FMF","FMFUKUOKA","FMGIFU","FMGUNMA","FMI","FMJ","FMK","FMKAGAWA","FMMIE"],
+    ["FMN","FMNAGASAKI","FMNIIGATA","FMO","FMPORT","FMT","FMTOYAMA","FMY","GBS","HBC"],
+    ["HELLOFIVE","HFM","HOUSOU-DAIGAKU","IBC","IBS","INT","JOAB","JOAK-FM","JOAK","JOAK"],
+    ["JOBK","JOCK","JOCK","JOEU-FM","JOFK","JOHK","JOIK","JOLK","JORF","JOZK"],
+    ["JRT","K-MIX","KBC","KBS","KISSFMKOBE","KNB","KRY","LFR","LOVEFM","MBC"],
+    ["MBS","MRO","MRT","MYUFM","NACK5","NBC","NORTHWAVE","OBC","OBS","QRR"],
+    ["RAB","RADIOBERRY","RADIONEO","RBC","RCC","RFC","RKB","RKC","RKK","RN1"],
+    ["RN2","RNB","RNC","ROK","RSK","SBC","SBS","STV","TBC","TBS"],
+    ["TOKAIRADIO","WBS","YBC","YBS","YFM","ZIP-FM"]];
 
-exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
+exports.getWeekPrg0 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(0);
+    res.status(200).end();
+});
 
-    const stationCodeArr = ["802","ABC","ABS","AFB","AIR-G","ALPHA-STATION","BAYFM78","BSN","BSS","CBC","CCL","CRK","CROSSFM","CRT","DATEFM","E-RADIO","FBC","FM_OITA","FM_OKINAWA","FM-FUJI","FMAICHI","FMF","FMFUKUOKA","FMGIFU","FMGUNMA","FMI","FMJ","FMK","FMKAGAWA","FMMIE","FMN","FMNAGASAKI","FMNIIGATA","FMO","FMPORT","FMT","FMTOYAMA","FMY","GBS","HBC","HELLOFIVE","HFM","HOUSOU-DAIGAKU","IBC","IBS","INT","JOAB","JOAK-FM","JOAK","JOAK","JOBK","JOCK","JOCK","JOEU-FM","JOFK","JOHK","JOIK","JOLK","JORF","JOZK","JRT","K-MIX","KBC","KBS","KISSFMKOBE","KNB","KRY","LFR","LOVEFM","MBC","MBS","MRO","MRT","MYUFM","NACK5","NBC","NORTHWAVE","OBC","OBS","QRR","RAB","RADIOBERRY","RADIONEO","RBC","RCC","RFC","RKB","RKC","RKK","RN1","RN2","RNB","RNC","ROK","RSK","SBC","SBS","STV","TBC","TBS","TOKAIRADIO","WBS","YBC","YBS","YFM","ZIP-FM"];
-    for (const stCode of stationCodeArr) {
+exports.getWeekPrg1 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(1);
+    res.status(200).end();
+});
+
+exports.getWeekPrg2 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(2);
+    res.status(200).end();
+});
+
+exports.getWeekPrg3 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(3);
+    res.status(200).end();
+});
+
+exports.getWeekPrg4 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(4);
+    res.status(200).end();
+});
+
+exports.getWeekPrg5 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(5);
+    res.status(200).end();
+});
+
+exports.getWeekPrg6 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(6);
+    res.status(200).end();
+});
+
+exports.getWeekPrg7 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(7);
+    res.status(200).end();
+});
+
+exports.getWeekPrg8 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(8);
+    res.status(200).end();
+});
+
+exports.getWeekPrg9 = functions.https.onRequest(async (req, res) => {
+    await getWeekPrg(9);
+    res.status(200).end();
+});
+
+const getWeekPrg = async (arrayNum) => {
+    for (const stCode of stationCodeArr[arrayNum]) {
         const url = 'http://radiko.jp/v3/program/station/weekly/'+ stCode +'.xml';
         const body = await rp(url).catch(e => {
-           console.error(e);
+            console.error(e);
         });
 
         if (!body) continue;
@@ -64,7 +123,7 @@ exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
         for(let i=0; i<progs.length; i++){
             const item = progs.eq(i);
             const date = item.find('date').html();
-            const ref = await fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
+            await fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
                 ttl: ttl,
                 srvtime: srvtime,
                 date: date,
@@ -72,15 +131,11 @@ exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
             }).catch(e => {
                 console.error(e);
             });
-
-            console.info('ref', ref);
         }
 
-        await sleep(1000);
+        console.info('完了:', stCode);
     }
-
-    res.status(200).end();
-});
+};
 
 
 // exports.request1st = functions.https.onCall((data, context) => {
