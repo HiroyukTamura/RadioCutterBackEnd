@@ -1,5 +1,7 @@
 "use strict";
 
+import 'babel-polyfill'
+
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { execSync } = require('child_process');
