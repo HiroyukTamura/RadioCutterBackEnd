@@ -13,12 +13,11 @@ var rp = require('request-promise');
 var cheerio = require('cheerio');
 
 admin.initializeApp();
+var fireStore = admin.firestore();
+fireStore.settings({
+    timestampsInSnapshots: true
+});
 
-var firestore = new Firestore();
-var settings = { timestampsInSnapshots: true };
-firestore.settings(settings);
-
-// Saves a message to the Firebase Realtime Database but sanitizes the text by removing swearwords.
 exports.askAuthToken = functions.https.onCall(function (data, context) {
     var offset = data.offset;
     var keyLen = data.keyLen;
@@ -48,128 +47,137 @@ exports.askAuthToken = functions.https.onCall(function (data, context) {
 });
 
 exports.getWeekPrg = functions.https.onRequest(function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, resp) {
-        var fireStore, stationCodeArr, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, url, body, $, ttl, srvtime, progs, i, item, date, ref;
+    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
+        var stationCodeArr, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, url, body, $, ttl, srvtime, progs, i, item, date, ref;
 
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
-                        fireStore = admin.firestore();
+                        // setTimeout(() => {
+                        //     console.log('Function running...');
+                        //     res.status(200).end();
+                        // }, 8 * 60 * 1000); // 8 minute delay
+
                         stationCodeArr = ["802", "ABC", "ABS", "AFB", "AIR-G", "ALPHA-STATION", "BAYFM78", "BSN", "BSS", "CBC", "CCL", "CRK", "CROSSFM", "CRT", "DATEFM", "E-RADIO", "FBC", "FM_OITA", "FM_OKINAWA", "FM-FUJI", "FMAICHI", "FMF", "FMFUKUOKA", "FMGIFU", "FMGUNMA", "FMI", "FMJ", "FMK", "FMKAGAWA", "FMMIE", "FMN", "FMNAGASAKI", "FMNIIGATA", "FMO", "FMPORT", "FMT", "FMTOYAMA", "FMY", "GBS", "HBC", "HELLOFIVE", "HFM", "HOUSOU-DAIGAKU", "IBC", "IBS", "INT", "JOAB", "JOAK-FM", "JOAK", "JOAK", "JOBK", "JOCK", "JOCK", "JOEU-FM", "JOFK", "JOHK", "JOIK", "JOLK", "JORF", "JOZK", "JRT", "K-MIX", "KBC", "KBS", "KISSFMKOBE", "KNB", "KRY", "LFR", "LOVEFM", "MBC", "MBS", "MRO", "MRT", "MYUFM", "NACK5", "NBC", "NORTHWAVE", "OBC", "OBS", "QRR", "RAB", "RADIOBERRY", "RADIONEO", "RBC", "RCC", "RFC", "RKB", "RKC", "RKK", "RN1", "RN2", "RNB", "RNC", "ROK", "RSK", "SBC", "SBS", "STV", "TBC", "TBS", "TOKAIRADIO", "WBS", "YBC", "YBS", "YFM", "ZIP-FM"];
                         _iteratorNormalCompletion = true;
                         _didIteratorError = false;
                         _iteratorError = undefined;
-                        _context.prev = 5;
+                        _context.prev = 4;
                         _iterator = stationCodeArr[Symbol.iterator]();
 
-                    case 7:
+                    case 6:
                         if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                            _context.next = 35;
+                            _context.next = 34;
                             break;
                         }
 
                         stCode = _step.value;
                         url = 'http://radiko.jp/v3/program/station/weekly/' + stCode + '.xml';
-                        _context.next = 12;
+                        _context.next = 11;
                         return rp(url).catch(function (e) {
                             console.error(e);
                         });
 
-                    case 12:
+                    case 11:
                         body = _context.sent;
 
                         if (body) {
-                            _context.next = 15;
+                            _context.next = 14;
                             break;
                         }
 
-                        return _context.abrupt('continue', 32);
+                        return _context.abrupt('continue', 31);
 
-                    case 15:
+                    case 14:
                         $ = cheerio.load(body);
                         ttl = $(body).find('ttl').html();
                         srvtime = $(body).find('srvtime').html();
                         progs = $(body).find('progs');
                         i = 0;
 
-                    case 20:
+                    case 19:
                         if (!(i < progs.length)) {
-                            _context.next = 30;
+                            _context.next = 29;
                             break;
                         }
 
                         item = progs.eq(i);
                         date = item.find('date').html();
-                        _context.next = 25;
+                        _context.next = 24;
                         return fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
                             ttl: ttl,
                             srvtime: srvtime,
-                            xml: item.html()
+                            date: date,
+                            xml: '<progs>' + item.html() + '</progs>' /*todo これ*/
                         }).catch(function (e) {
                             console.error(e);
                         });
 
-                    case 25:
+                    case 24:
                         ref = _context.sent;
 
 
                         console.info('ref', ref);
 
-                    case 27:
+                    case 26:
                         i++;
-                        _context.next = 20;
+                        _context.next = 19;
                         break;
 
-                    case 30:
-                        _context.next = 32;
-                        return sleep(5 * 1000);
+                    case 29:
+                        _context.next = 31;
+                        return sleep(1000);
 
-                    case 32:
+                    case 31:
                         _iteratorNormalCompletion = true;
-                        _context.next = 7;
+                        _context.next = 6;
                         break;
 
-                    case 35:
-                        _context.next = 41;
+                    case 34:
+                        _context.next = 40;
                         break;
 
-                    case 37:
-                        _context.prev = 37;
-                        _context.t0 = _context['catch'](5);
+                    case 36:
+                        _context.prev = 36;
+                        _context.t0 = _context['catch'](4);
                         _didIteratorError = true;
                         _iteratorError = _context.t0;
 
-                    case 41:
+                    case 40:
+                        _context.prev = 40;
                         _context.prev = 41;
-                        _context.prev = 42;
 
                         if (!_iteratorNormalCompletion && _iterator.return) {
                             _iterator.return();
                         }
 
-                    case 44:
-                        _context.prev = 44;
+                    case 43:
+                        _context.prev = 43;
 
                         if (!_didIteratorError) {
-                            _context.next = 47;
+                            _context.next = 46;
                             break;
                         }
 
                         throw _iteratorError;
 
+                    case 46:
+                        return _context.finish(43);
+
                     case 47:
-                        return _context.finish(44);
+                        return _context.finish(40);
 
                     case 48:
-                        return _context.finish(41);
+
+                        res.status(200).end();
 
                     case 49:
                     case 'end':
                         return _context.stop();
                 }
             }
-        }, _callee, undefined, [[5, 37, 41, 49], [42,, 44, 48]]);
+        }, _callee, undefined, [[4, 36, 40, 48], [41,, 43, 47]]);
     }));
 
     return function (_x, _x2) {
@@ -224,12 +232,11 @@ exports.date = functions.https.onRequest(function (req, res) {
 });
 
 function postError(witchErr, resCode, body) {
-    var fireStotre = admin.firestore();
-    fireStotre.collection('request1st').doc().set({
+    fireStore.collection('request1st').doc().set({
         witchErr: witchErr,
         statusCode: resCode,
         body: body,
-        timestamp: fireStotre.serverTimestamp().toDate()
+        timestamp: fireStore.serverTimestamp().toDate()
     }).then(function (ref) {
         console.log('ログポスト完了 ', ref);
     }).catch(function (e) {
