@@ -41,4 +41,5 @@ const getWeekPrg = async (arrayNum) => {
 
         console.info('完了:', stCode);
     }
+
 };
