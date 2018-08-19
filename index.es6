@@ -3,7 +3,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { execSync } = require('child_process');
-const request = require('request');
+// const request = require('request');
 const rp = require('request-promise');
 const cheerio = require('cheerio');
 
@@ -57,54 +57,13 @@ const stationCodeArr = [["802","ABC","ABS","AFB","AIR-G","ALPHA-STATION","BAYFM7
     ["RN2","RNB","RNC","ROK","RSK","SBC","SBS","STV","TBC","TBS"],
     ["TOKAIRADIO","WBS","YBC","YBS","YFM","ZIP-FM"]];
 
-exports.getWeekPrg0 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(0);
-    res.status(200).end();
-});
-
-exports.getWeekPrg1 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(1);
-    res.status(200).end();
-});
-
-exports.getWeekPrg2 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(2);
-    res.status(200).end();
-});
-
-exports.getWeekPrg3 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(3);
-    res.status(200).end();
-});
-
-exports.getWeekPrg4 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(4);
-    res.status(200).end();
-});
-
-exports.getWeekPrg5 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(5);
-    res.status(200).end();
-});
-
-exports.getWeekPrg6 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(6);
-    res.status(200).end();
-});
-
-exports.getWeekPrg7 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(7);
-    res.status(200).end();
-});
-
-exports.getWeekPrg8 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(8);
-    res.status(200).end();
-});
-
-exports.getWeekPrg9 = functions.https.onRequest(async (req, res) => {
-    await getWeekPrg(9);
-    res.status(200).end();
+exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
+    if (req.body.pass != 'radiko' || !req.body.witch || req.body.witch > 9)
+        res.status(403).end();
+    else {
+        await getWeekPrg(req.body.witch);
+        res.status(200).end();
+    }
 });
 
 const getWeekPrg = async (arrayNum) => {
@@ -138,8 +97,8 @@ const getWeekPrg = async (arrayNum) => {
 };
 
 
-// exports.request1st = functions.https.onCall((data, context) => {
-exports.request1st = functions.https.onRequest(async (req, res) => {
+exports.request1st = functions.https.onCall(async (data, context) => {
+// exports.request1st = functions.https.onRequest(async (req, res) => {
     const options = {
         resolveWithFullResponse: true,
         url: 'https://radiko.jp/v2/api/auth1',
@@ -179,7 +138,7 @@ exports.request1st = functions.https.onRequest(async (req, res) => {
         const partialKey = atob(splicedStr);
         console.log('body', response.body);
         console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
-        res.status(200).end();
+        // res.status(200).end();
 
     } else {
         console.log('httpErr', e);
