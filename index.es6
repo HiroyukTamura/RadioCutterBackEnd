@@ -5,7 +5,7 @@ import 'babel-polyfill'
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { execSync } = require('child_process');
-// const request = require('request');
+const request = require('request');
 const rp = require('request-promise');
 const cheerio = require('cheerio');
 

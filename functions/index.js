@@ -9,9 +9,8 @@ var admin = require('firebase-admin');
 
 var _require = require('child_process'),
     execSync = _require.execSync;
-// const request = require('request');
 
-
+var request = require('request');
 var rp = require('request-promise');
 var cheerio = require('cheerio');
 
