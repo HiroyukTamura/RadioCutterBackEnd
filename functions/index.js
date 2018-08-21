@@ -20,6 +20,14 @@ fireStore.settings({
     timestampsInSnapshots: true
 });
 
+http.createServer(function (req, resp) {
+    response.writeHead(200, { 'Content-Type': 'text/plain' }); //レスポンスヘッダーに書き込み
+    response.write('Hello World\n'); // レスポンスボディに「Hello World」を書き込み
+    response.end(); // レスポンス送信を完了する
+});
+
+server.listen(process.env.PORT || 8080); //8080番ポートで待ち受け
+
 exports.askAuthToken = functions.https.onCall(function (data, context) {
     var offset = data.offset;
     var keyLen = data.keyLen;
@@ -48,174 +56,13 @@ exports.askAuthToken = functions.https.onCall(function (data, context) {
     return stdout;
 });
 
-var stationCodeArr = [["802", "ABC", "ABS", "AFB", "AIR-G", "ALPHA-STATION", "BAYFM78", "BSN", "BSS", "CBC"], ["CCL", "CRK", "CROSSFM", "CRT", "DATEFM", "E-RADIO", "FBC", "FM_OITA", "FM_OKINAWA", "FM-FUJI"], ["FMAICHI", "FMF", "FMFUKUOKA", "FMGIFU", "FMGUNMA", "FMI", "FMJ", "FMK", "FMKAGAWA", "FMMIE"], ["FMN", "FMNAGASAKI", "FMNIIGATA", "FMO", "FMPORT", "FMT", "FMTOYAMA", "FMY", "GBS", "HBC"], ["HELLOFIVE", "HFM", "HOUSOU-DAIGAKU", "IBC", "IBS", "INT", "JOAB", "JOAK-FM", "JOAK", "JOAK"], ["JOBK", "JOCK", "JOCK", "JOEU-FM", "JOFK", "JOHK", "JOIK", "JOLK", "JORF", "JOZK"], ["JRT", "K-MIX", "KBC", "KBS", "KISSFMKOBE", "KNB", "KRY", "LFR", "LOVEFM", "MBC"], ["MBS", "MRO", "MRT", "MYUFM", "NACK5", "NBC", "NORTHWAVE", "OBC", "OBS", "QRR"], ["RAB", "RADIOBERRY", "RADIONEO", "RBC", "RCC", "RFC", "RKB", "RKC", "RKK", "RN1"], ["RN2", "RNB", "RNC", "ROK", "RSK", "SBC", "SBS", "STV", "TBC", "TBS"], ["TOKAIRADIO", "WBS", "YBC", "YBS", "YFM", "ZIP-FM"]];
-
-exports.getWeekPrg = functions.https.onRequest(function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
+exports.request1st = functions.https.onCall(function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(data, context) {
+        var options, response, authToken, keyLen, keyOffset, authKey, splicedStr, partialKey;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
-                        if (!(req.body.pass != 'radiko' || !req.body.witch || req.body.witch > 9)) {
-                            _context.next = 4;
-                            break;
-                        }
-
-                        res.status(403).end();
-                        _context.next = 7;
-                        break;
-
-                    case 4:
-                        _context.next = 6;
-                        return getWeekPrg(req.body.witch);
-
-                    case 6:
-                        res.status(200).end();
-
-                    case 7:
-                    case 'end':
-                        return _context.stop();
-                }
-            }
-        }, _callee, undefined);
-    }));
-
-    return function (_x, _x2) {
-        return _ref.apply(this, arguments);
-    };
-}());
-
-var getWeekPrg = function () {
-    var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(arrayNum) {
-        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, stCode, url, body, $, ttl, srvtime, progs, i, item, date;
-
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-            while (1) {
-                switch (_context2.prev = _context2.next) {
-                    case 0:
-                        _iteratorNormalCompletion = true;
-                        _didIteratorError = false;
-                        _iteratorError = undefined;
-                        _context2.prev = 3;
-                        _iterator = stationCodeArr[arrayNum][Symbol.iterator]();
-
-                    case 5:
-                        if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                            _context2.next = 30;
-                            break;
-                        }
-
-                        stCode = _step.value;
-                        url = 'http://radiko.jp/v3/program/station/weekly/' + stCode + '.xml';
-                        _context2.next = 10;
-                        return rp(url).catch(function (e) {
-                            console.error(e);
-                        });
-
-                    case 10:
-                        body = _context2.sent;
-
-                        if (body) {
-                            _context2.next = 13;
-                            break;
-                        }
-
-                        return _context2.abrupt('continue', 27);
-
-                    case 13:
-                        $ = cheerio.load(body);
-                        ttl = $(body).find('ttl').html();
-                        srvtime = $(body).find('srvtime').html();
-                        progs = $(body).find('progs');
-                        i = 0;
-
-                    case 18:
-                        if (!(i < progs.length)) {
-                            _context2.next = 26;
-                            break;
-                        }
-
-                        item = progs.eq(i);
-                        date = item.find('date').html();
-                        _context2.next = 23;
-                        return fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
-                            ttl: ttl,
-                            srvtime: srvtime,
-                            date: date,
-                            xml: '<progs>' + item.html() + '</progs>' /*todo これ*/
-                        }).catch(function (e) {
-                            console.error(e);
-                        });
-
-                    case 23:
-                        i++;
-                        _context2.next = 18;
-                        break;
-
-                    case 26:
-
-                        console.info('完了:', stCode);
-
-                    case 27:
-                        _iteratorNormalCompletion = true;
-                        _context2.next = 5;
-                        break;
-
-                    case 30:
-                        _context2.next = 36;
-                        break;
-
-                    case 32:
-                        _context2.prev = 32;
-                        _context2.t0 = _context2['catch'](3);
-                        _didIteratorError = true;
-                        _iteratorError = _context2.t0;
-
-                    case 36:
-                        _context2.prev = 36;
-                        _context2.prev = 37;
-
-                        if (!_iteratorNormalCompletion && _iterator.return) {
-                            _iterator.return();
-                        }
-
-                    case 39:
-                        _context2.prev = 39;
-
-                        if (!_didIteratorError) {
-                            _context2.next = 42;
-                            break;
-                        }
-
-                        throw _iteratorError;
-
-                    case 42:
-                        return _context2.finish(39);
-
-                    case 43:
-                        return _context2.finish(36);
-
-                    case 44:
-                    case 'end':
-                        return _context2.stop();
-                }
-            }
-        }, _callee2, undefined, [[3, 32, 36, 44], [37,, 39, 43]]);
-    }));
-
-    return function getWeekPrg(_x3) {
-        return _ref2.apply(this, arguments);
-    };
-}();
-
-exports.request1st = functions.https.onCall(function () {
-    var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(data, context) {
-        var options, response, authToken, keyLen, keyOffset, authKey, splicedStr, partialKey;
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
-            while (1) {
-                switch (_context3.prev = _context3.next) {
-                    case 0:
-                        // exports.request1st = functions.https.onRequest(async (req, res) => {
                         options = {
                             resolveWithFullResponse: true,
                             url: 'https://radiko.jp/v2/api/auth1',
@@ -235,16 +82,16 @@ exports.request1st = functions.https.onCall(function () {
                                 'X-Radiko-Device': 'pc'
                             }
                         };
-                        _context3.next = 3;
+                        _context.next = 3;
                         return rp(options).catch(function (e) {
                             console.error(e);
                         });
 
                     case 3:
-                        response = _context3.sent;
+                        response = _context.sent;
 
                         if (!(response.statusCode == 200)) {
-                            _context3.next = 19;
+                            _context.next = 19;
                             break;
                         }
 
@@ -254,13 +101,13 @@ exports.request1st = functions.https.onCall(function () {
                         authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
 
                         if (!(!authToken || !keyLen || !keyOffset)) {
-                            _context3.next = 13;
+                            _context.next = 13;
                             break;
                         }
 
                         console.log('httpErr', response.statusCode, response.body);
                         postError('err', response.body);
-                        return _context3.abrupt('return');
+                        return _context.abrupt('return');
 
                     case 13:
                         splicedStr = authKey.substr(keyOffset, keyLen);
@@ -270,23 +117,23 @@ exports.request1st = functions.https.onCall(function () {
                         console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
                         // res.status(200).end();
 
-                        _context3.next = 21;
+                        _context.next = 21;
                         break;
 
                     case 19:
                         console.log('httpErr', e);
-                        return _context3.abrupt('return', postError('httpErr', e));
+                        return _context.abrupt('return', postError('httpErr', e));
 
                     case 21:
                     case 'end':
-                        return _context3.stop();
+                        return _context.stop();
                 }
             }
-        }, _callee3, undefined);
+        }, _callee, undefined);
     }));
 
-    return function (_x4, _x5) {
-        return _ref3.apply(this, arguments);
+    return function (_x, _x2) {
+        return _ref.apply(this, arguments);
     };
 }());
 
