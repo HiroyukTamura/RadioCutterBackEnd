@@ -20,14 +20,6 @@ fireStore.settings({
     timestampsInSnapshots: true
 });
 
-http.createServer(function (req, resp) {
-    response.writeHead(200, { 'Content-Type': 'text/plain' }); //レスポンスヘッダーに書き込み
-    response.write('Hello World\n'); // レスポンスボディに「Hello World」を書き込み
-    response.end(); // レスポンス送信を完了する
-});
-
-server.listen(process.env.PORT || 8080); //8080番ポートで待ち受け
-
 exports.askAuthToken = functions.https.onCall(function (data, context) {
     var offset = data.offset;
     var keyLen = data.keyLen;
