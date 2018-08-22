@@ -118,24 +118,41 @@ exports.request1st = functions.https.onRequest(async (req, res) => {
         return postError('httpErr2nd', response2nd.statusCode);
     }
 
+    console.log('http2nd', 'succeed');
+
+
+    const queryObj = {
+        station_id: request.body.stationId,
+        l: 15,
+        ft: request.body.ft,
+        to: request.body.to
+    };
+
+    const header3rd = getDefaultHeader();
+    header3rd['X-Radiko-AuthToken'] = authToken;
+
+    const options3rd = {
+        resolveWithFullResponse: true,
+        url: 'https://radiko.jp/v2/api/ts/playlist.m3u8',
+        qs: propertiesObject,
+        headers: header3rd
+    };
+
+    console.log(options3rd)
+
+    const response3rd = await rp(options).catch(e => {
+        console.error(e);
+        return postError('httpErr3rd', e);
+    });
+
+    if (response3rd.statusCode !== 200) {
+        console.log('httpErr3rd', response3rd.statusCode);
+        return postError('httpErr3rd', response3rd.statusCode);
+    }
+
+
+    console.log(response3rd.body);
     res.status(200).end();
-
-
-        // void request2nd() throws IOException, HttpChainException {
-        // @Cleanup Response response = request(AUTH2_URL, createHeaderForAuth2(), null);
-        //     if (!response.isSuccessful())
-        //         throw new HttpChainException(HTTP_ERROR, TAG, "errCode: "+ response.code() + "e rrMsg:"+ response.message(), "request2nd");
-        // }
-
-    // @NonNull
-    //     private Headers createHeaderForAuth2(){
-    //         return Util.HEADERS_DEFAULT.newBuilder()
-    //             .add("X-Radiko-AuthToken", authToken)
-    //             .add("X-Radiko-Partialkey", partialKey)
-    //             .add("X-Radiko-User", "dummy_user")
-    //             .add("X-Radiko-Device", "pc")
-    //             .build();
-    //     }
 });
 
 function postError(witchErr, e) {

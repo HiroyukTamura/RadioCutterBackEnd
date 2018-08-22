@@ -69,7 +69,7 @@ var getDefaultHeader = function getDefaultHeader() {
 // exports.request1st = functions.https.onCall(async (data, context) => {
 exports.request1st = functions.https.onRequest(function () {
     var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
-        var options, response, authToken, keyLen, keyOffset, authKey, splicedStr, partialKey, header2nd, options2nd, response2nd;
+        var options, response, authToken, keyLen, keyOffset, authKey, splicedStr, partialKey, header2nd, options2nd, response2nd, queryObj, header3rd, options3rd, response3rd;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
@@ -146,25 +146,47 @@ exports.request1st = functions.https.onRequest(function () {
 
                     case 28:
 
+                        console.log('http2nd', 'succeed');
+
+                        queryObj = {
+                            station_id: request.body.stationId,
+                            l: 15,
+                            ft: request.body.ft,
+                            to: request.body.to
+                        };
+                        header3rd = getDefaultHeader();
+
+                        header3rd['X-Radiko-AuthToken'] = authToken;
+
+                        options3rd = {
+                            resolveWithFullResponse: true,
+                            url: 'https://radiko.jp/v2/api/ts/playlist.m3u8',
+                            qs: propertiesObject,
+                            headers: header3rd
+                        };
+                        _context.next = 35;
+                        return rp(options).catch(function (e) {
+                            console.error(e);
+                            return postError('httpErr3rd', e);
+                        });
+
+                    case 35:
+                        response3rd = _context.sent;
+
+                        if (!(response3rd.statusCode !== 200)) {
+                            _context.next = 39;
+                            break;
+                        }
+
+                        console.log('httpErr3rd', response3rd.statusCode);
+                        return _context.abrupt('return', postError('httpErr3rd', response3rd.statusCode));
+
+                    case 39:
+
+                        console.log(response3rd.body);
                         res.status(200).end();
 
-                        // void request2nd() throws IOException, HttpChainException {
-                        // @Cleanup Response response = request(AUTH2_URL, createHeaderForAuth2(), null);
-                        //     if (!response.isSuccessful())
-                        //         throw new HttpChainException(HTTP_ERROR, TAG, "errCode: "+ response.code() + "e rrMsg:"+ response.message(), "request2nd");
-                        // }
-
-                        // @NonNull
-                        //     private Headers createHeaderForAuth2(){
-                        //         return Util.HEADERS_DEFAULT.newBuilder()
-                        //             .add("X-Radiko-AuthToken", authToken)
-                        //             .add("X-Radiko-Partialkey", partialKey)
-                        //             .add("X-Radiko-User", "dummy_user")
-                        //             .add("X-Radiko-Device", "pc")
-                        //             .build();
-                        //     }
-
-                    case 29:
+                    case 41:
                     case 'end':
                         return _context.stop();
                 }
