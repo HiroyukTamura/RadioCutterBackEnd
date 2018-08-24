@@ -2,8 +2,6 @@
 
 require('babel-polyfill');
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
 var functions = require('firebase-functions');
 var admin = require('firebase-admin');
 
@@ -13,6 +11,7 @@ var _require = require('child_process'),
 var request = require('request');
 var rp = require('request-promise');
 var cheerio = require('cheerio');
+var exec = require('child-process-promise').exec;
 
 admin.initializeApp();
 var fireStore = admin.firestore();
@@ -66,143 +65,162 @@ var getDefaultHeader = function getDefaultHeader() {
     };
 };
 
-// exports.request1st = functions.https.onCall(async (data, context) => {
-exports.request1st = functions.https.onRequest(function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
-        var options, response, authToken, keyLen, keyOffset, authKey, splicedStr, partialKey, header2nd, options2nd, response2nd, queryObj, header3rd, options3rd, response3rd;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-            while (1) {
-                switch (_context.prev = _context.next) {
-                    case 0:
-                        options = {
-                            resolveWithFullResponse: true,
-                            url: 'https://radiko.jp/v2/api/auth1',
-                            headers: getDefaultHeader()
-                        };
-                        _context.next = 3;
-                        return rp(options).catch(function (e) {
-                            console.error(e);
-                            return postError('httpErr', e);
-                        });
+var headers1st = function headers1st(version) {
+    var segment = void 0;
+    switch (version) {
+        case 4:
+            segment = "4.0.3";
+            break;
+        case 5:
+            segment = "5.0.4";
+            break;
+        case 6:
+            segment = "6.3.0";
+            break;
+    }
 
-                    case 3:
-                        response = _context.sent;
+    if (!segment) return;
 
-                        if (!(response.statusCode !== 200)) {
-                            _context.next = 7;
-                            break;
-                        }
-
-                        console.log('httpErr', response.statusCode);
-                        return _context.abrupt('return', postError('httpErr', response.statusCode));
-
-                    case 7:
-                        authToken = response.headers['x-radiko-authtoken'];
-                        keyLen = response.headers['x-radiko-keylength'];
-                        keyOffset = response.headers['x-radiko-keyoffset'];
-                        authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
-
-                        if (!(!authToken || !keyLen || !keyOffset)) {
-                            _context.next = 14;
-                            break;
-                        }
-
-                        console.log('httpErr', response.statusCode, response.body);
-                        return _context.abrupt('return', postError('err', response.body));
-
-                    case 14:
-                        splicedStr = authKey.substr(keyOffset, keyLen);
-                        partialKey = atob(splicedStr);
-
-                        console.log('body', response.body);
-                        console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
-
-                        header2nd = getDefaultHeader();
-
-                        header2nd['X-Radiko-AuthToken'] = authToken;
-                        header2nd['X-Radiko-Partialkey'] = partialKey;
-
-                        options2nd = {
-                            resolveWithFullResponse: true,
-                            url: 'https://radiko.jp/v2/api/auth2',
-                            headers: header2nd
-                        };
-                        _context.next = 24;
-                        return rp(options).catch(function (e) {
-                            console.error(e);
-                            return postError('httpErr2nd', e);
-                        });
-
-                    case 24:
-                        response2nd = _context.sent;
-
-                        if (!(response2nd.statusCode !== 200)) {
-                            _context.next = 28;
-                            break;
-                        }
-
-                        console.log('httpErr2nd', response2nd.statusCode);
-                        return _context.abrupt('return', postError('httpErr2nd', response2nd.statusCode));
-
-                    case 28:
-
-                        console.log('http2nd', 'succeed');
-
-                        queryObj = {
-                            station_id: request.body.stationId,
-                            l: 15,
-                            ft: request.body.ft,
-                            to: request.body.to
-                        };
-                        header3rd = getDefaultHeader();
-
-                        header3rd['X-Radiko-AuthToken'] = authToken;
-
-                        options3rd = {
-                            resolveWithFullResponse: true,
-                            url: 'https://radiko.jp/v2/api/ts/playlist.m3u8',
-                            qs: propertiesObject,
-                            headers: header3rd
-                        };
-                        _context.next = 35;
-                        return rp(options).catch(function (e) {
-                            console.error(e);
-                            return postError('httpErr3rd', e);
-                        });
-
-                    case 35:
-                        response3rd = _context.sent;
-
-                        if (!(response3rd.statusCode !== 200)) {
-                            _context.next = 39;
-                            break;
-                        }
-
-                        console.log('httpErr3rd', response3rd.statusCode);
-                        return _context.abrupt('return', postError('httpErr3rd', response3rd.statusCode));
-
-                    case 39:
-
-                        console.log(response3rd.body);
-                        res.status(200).end();
-
-                    case 41:
-                    case 'end':
-                        return _context.stop();
-                }
-            }
-        }, _callee, undefined);
-    }));
-
-    return function (_x, _x2) {
-        return _ref.apply(this, arguments);
+    return {
+        'Access-Control-Request-Headers': 'x-radiko-app,x-radiko-app-version,x-radiko-device,x-radiko-user',
+        'X-Radiko-App-Version': segment,
+        'X-Radiko-User': 'dummy_user',
+        'X-Radiko-Device': '23.5080K',
+        'X-Radiko-App': 'aSmartPhone6'
     };
-}());
+};
+
+// exports.request1st = functions.https.onCall(async (data, context) => {
+exports.request1st = functions.region('asia-northeast1').https.onRequest(function (req, res) {
+
+    var version = 5; /*4-6であること*/
+
+    var options = {
+        resolveWithFullResponse: true,
+        url: 'https://radiko.jp/v2/api/auth1',
+        headers: headers1st(version)
+    };
+
+    return rp(options).then(function (response) {
+        var authToken = response.headers['x-radiko-authtoken'];
+        var keyLen = response.headers['x-radiko-keylength'];
+        var keyOffset = response.headers['x-radiko-keyoffset'];
+
+        var segment = void 0;
+        switch (version) {
+            case 4:
+                segment = "aSmartPhone4v4.0.3.bin";
+                break;
+            case 5:
+                segment = "aSmartPhone6v5.0.6.bin";
+                break;
+            case 6:
+                segment = "aSmartPhone7av6.3.0.bin";
+                break;
+        }
+
+        console.log('dd if=PartialKey/' + segment + ' bs=1 skip=' + keyOffset + ' count=' + keyLen + ' 2> /dev/null | base64');
+
+        var stdout = execSync('dd if=PartialKey/' + segment + ' bs=1 skip=' + keyOffset + ' count=' + keyLen + ' 2> /dev/null | base64').toString();
+        console.log(stdout);
+        res.status(200).end(stdout);
+    }).catch(function (err) {
+        console.log('httpErr', err);
+        // return postError('httpErr', err.statusCode);
+    });
+
+    // const result = await exec(`dd if=PartialKey/${segment} bs=1 skip=${keyOffset} count=${keyLen} 2> /dev/null | base64`).catch(e => {
+    //     console.error(e);
+    //     return postError('httpErr', e);
+    // });
+
+    // const exec = require('child_process').exec;
+    // exec(`dd if=PartialKey/${segment} bs=1 skip=${keyOffset} count=${keyLen} 2> /dev/null | base64`, (err, stdout, stderr) => {
+    //     if (err)
+    //         console.log(err);
+    //
+    //     console.log('stdout', stdout.toString());
+    //     console.warn('stderr', stderr.toString());
+    //
+    //     res.status(200).end(stderr.toString());
+    //
+    //     return;
+    // });
+
+    // console.log('stdout', result.stdout.toString());
+    // console.log('stderr', result.stderr.toString());
+
+    // const authKey = "bcd151073c03b352e1ef2fd66c32209da9ca0afa";
+    // if (!authToken || !keyLen || !keyOffset) {
+    //     console.log('httpErr', response.statusCode, response.body);
+    //     return postError('err', response.body);
+    // }
+    //
+    // const splicedStr = authKey.substr(keyOffset, keyLen);
+    // const partialKey = atob(splicedStr);
+    // console.log('body', response.body);
+    // console.log('authToken', authToken, 'keyLen', keyLen, 'keyOffset', keyOffset, 'partialKey', partialKey);
+    //
+    // const header2nd = getDefaultHeader();
+    // header2nd['X-Radiko-AuthToken'] = authToken;
+    // header2nd['X-Radiko-Partialkey'] = partialKey;
+    //
+    // const options2nd = {
+    //     resolveWithFullResponse: true,
+    //     url: 'https://radiko.jp/v2/api/auth2',
+    //     headers: header2nd
+    // };
+    //
+    // const response2nd = await rp(options).catch(e => {
+    //     console.error(e);
+    //     return postError('httpErr2nd', e);
+    // });
+    //
+    // if (response2nd.statusCode !== 200) {
+    //     console.log('httpErr2nd', response2nd.statusCode);
+    //     return postError('httpErr2nd', response2nd.statusCode);
+    // }
+    //
+    // console.log('http2nd', 'succeed');
+    //
+    //
+    // const queryObj = {
+    //     station_id: request.body.stationId,
+    //     l: 15,
+    //     ft: request.body.ft,
+    //     to: request.body.to
+    // };
+    //
+    // const header3rd = getDefaultHeader();
+    // header3rd['X-Radiko-AuthToken'] = authToken;
+    //
+    // const options3rd = {
+    //     resolveWithFullResponse: true,
+    //     url: 'https://radiko.jp/v2/api/ts/playlist.m3u8',
+    //     qs: propertiesObject,
+    //     headers: header3rd
+    // };
+    //
+    // console.log(options3rd)
+    //
+    // const response3rd = await rp(options).catch(e => {
+    //     console.error(e);
+    //     return postError('httpErr3rd', e);
+    // });
+    //
+    // if (response3rd.statusCode !== 200) {
+    //     console.log('httpErr3rd', response3rd.statusCode);
+    //     return postError('httpErr3rd', response3rd.statusCode);
+    // }
+    //
+    //
+    // console.log(response3rd.body);
+});
 
 function postError(witchErr, e) {
     fireStore.collection('request1st').doc().set({
         witchErr: witchErr,
-        error: e.toString()
+        error: e
         // timestamp: fireStore.serverTimestamp().toDate()
     }).then(function (ref) {
         console.log('ログポスト完了 ', ref);
