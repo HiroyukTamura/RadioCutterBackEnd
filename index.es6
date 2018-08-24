@@ -113,29 +113,41 @@ exports.request1st = functions.region('asia-northeast1')
 
     const options = {
         resolveWithFullResponse: true,
-        url: 'https://radiko.jp/v2/api/auth1',
+        host: 'https://radiko.jp',
+        path: 'v2/api/auth1',
         headers: headers1st(version)
     };
 
-    return rp(options).then(response => {
-        const authToken = response.headers['x-radiko-authtoken'];
-        const keyLen = response.headers['x-radiko-keylength'];
-        const keyOffset  = response.headers['x-radiko-keyoffset'];
-
-        let segment;
-        switch (version) {
-            case 4:
-                segment = "aSmartPhone4v4.0.3.bin";
-                break;
-            case 5:
-                segment = "aSmartPhone6v5.0.6.bin";
-                break;
-            case 6:
-                segment = "aSmartPhone7av6.3.0.bin";
-                break;
+    return request(options, (error, response, body) => {
+        if (error || response.statusCode != 200) {
+            res.status(200).end(error +"  "+ response);
+            return;
         }
 
-        const stdout = execSync(`dd if=PartialKey/${segment} bs=1 skip=${keyOffset} count=${keyLen} 2> /dev/null | base64`).toString();
+        console.log('body:', body); // Print the HTML for the Google homepage.
+        res.status(200).end('body'+ body);
+        return;
+    });
+
+    // return rp(options).then(response => {
+        // const authToken = response.headers['x-radiko-authtoken'];
+        // const keyLen = response.headers['x-radiko-keylength'];
+        // const keyOffset  = response.headers['x-radiko-keyoffset'];
+        //
+        // let segment;
+        // switch (version) {
+        //     case 4:
+        //         segment = "aSmartPhone4v4.0.3.bin";
+        //         break;
+        //     case 5:
+        //         segment = "aSmartPhone6v5.0.6.bin";
+        //         break;
+        //     case 6:
+        //         segment = "aSmartPhone7av6.3.0.bin";
+        //         break;
+        // }
+        //
+        // const stdout = execSync(`dd if=PartialKey/${segment} bs=1 skip=${keyOffset} count=${keyLen} 2> /dev/null | base64`).toString();
         // const partialKey = stdout.split('\n')[0];
 
         // console.log('partialKey', partialKey);
@@ -146,7 +158,7 @@ exports.request1st = functions.region('asia-northeast1')
         //     headers: getHeaders2nd(authToken, partialKey)
         // };
 
-        res.status(200).end('good work.');
+        // return res.status(200).end('good work.');
 
     //     return rp(options2nd);
     //
@@ -154,11 +166,11 @@ exports.request1st = functions.region('asia-northeast1')
     // .then(response => {
     //     console.log('2nd body', response);
     //     res.status(200).end(response);
-    })
-    .catch(e => {
-        console.error(e);
-        res.status(200).end(e);
-    });
+    // })
+    // .catch(e => {
+    //     console.error(e);
+    //     return res.status(200).end(e);
+    // });
 });
 
 
