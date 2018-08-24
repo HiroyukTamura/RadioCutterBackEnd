@@ -98,16 +98,16 @@ const getHeaders2nd = (authToken, partialKey)=> {
         'X-Radiko-User': 'dummy_user',
         'X-Radiko-Device': '23.5080K',
         'X-Radiko-App': 'aSmartPhone6',
-        'X-Radiko-Delay': 0,
-        'X-Radiko-AuthWait': 0,
-        'X-Radiko-Connection': 0,
+        'X-Radiko-Delay': '0',
+        'X-Radiko-AuthWait': '0',
+        'X-Radiko-Connection': '0',
         'X-Radiko-Location': '34.39639,132.45944,gps'
     }
 }
 
 // exports.request1st = functions.https.onCall(async (data, context) => {
 exports.request1st = functions.region('asia-northeast1')
-    .https.onRequest(async (req, res) => {
+    .https.onRequest((req, res) => {
 
     const version = 5;/*4-6であること*/
 
@@ -117,79 +117,47 @@ exports.request1st = functions.region('asia-northeast1')
         headers: headers1st(version)
     };
 
-    const response1st = await rp(options).catch(e => {
+    return rp(options).then(response => {
+        const authToken = response.headers['x-radiko-authtoken'];
+        const keyLen = response.headers['x-radiko-keylength'];
+        const keyOffset  = response.headers['x-radiko-keyoffset'];
+
+        let segment;
+        switch (version) {
+            case 4:
+                segment = "aSmartPhone4v4.0.3.bin";
+                break;
+            case 5:
+                segment = "aSmartPhone6v5.0.6.bin";
+                break;
+            case 6:
+                segment = "aSmartPhone7av6.3.0.bin";
+                break;
+        }
+
+        const stdout = execSync(`dd if=PartialKey/${segment} bs=1 skip=${keyOffset} count=${keyLen} 2> /dev/null | base64`).toString();
+        // const partialKey = stdout.split('\n')[0];
+
+        // console.log('partialKey', partialKey);
+
+        // const options2nd = {
+        //     resolveWithFullResponse: true,
+        //     url: 'https://radiko.jp/v2/api/auth2',
+        //     headers: getHeaders2nd(authToken, partialKey)
+        // };
+
+        res.status(200).end('good work.');
+
+    //     return rp(options2nd);
+    //
+    // })
+    // .then(response => {
+    //     console.log('2nd body', response);
+    //     res.status(200).end(response);
+    })
+    .catch(e => {
         console.error(e);
         res.status(200).end(e);
-        return;
-    });
-
-    //これasync awaitで書くと落ちる
-    // return rp(options)
-    //     .then(response => {
-    //         const authToken = response.headers['x-radiko-authtoken'];
-    //         const keyLen = response.headers['x-radiko-keylength'];
-    //         const keyOffset  = response.headers['x-radiko-keyoffset'];
-    //
-    //         let segment;
-    //         switch (version) {
-    //             case 4:
-    //                 segment = "aSmartPhone4v4.0.3.bin";
-    //                 break;
-    //             case 5:
-    //                 segment = "aSmartPhone6v5.0.6.bin";
-    //                 break;
-    //             case 6:
-    //                 segment = "aSmartPhone7av6.3.0.bin";
-    //                 break;
-    //         }
-    //
-    //         const stdout = execSync(`dd if=PartialKey/${segment} bs=1 skip=${keyOffset} count=${keyLen} 2> /dev/null | base64`).toString();
-    //         res.status(200).end(stdout);
-    //
-    //     }).catch(err => {
-    //         res.status(200).end(err);
-    //         // return postError('httpErr', err.statusCode);
-    //     });
-
-    const response = await rp(option).catch(err => {
-        res.status(200).end(err);
-        return;
-    });
-
-    const authToken = response.headers['x-radiko-authtoken'];
-    const keyLen = response.headers['x-radiko-keylength'];
-    const keyOffset  = response.headers['x-radiko-keyoffset'];
-
-    let segment;
-    switch (version) {
-        case 4:
-            segment = "aSmartPhone4v4.0.3.bin";
-            break;
-        case 5:
-            segment = "aSmartPhone6v5.0.6.bin";
-            break;
-        case 6:
-            segment = "aSmartPhone7av6.3.0.bin";
-            break;
-    }
-
-    const stdout = execSync(`dd if=PartialKey/${segment} bs=1 skip=${keyOffset} count=${keyLen} 2> /dev/null | base64`).toString();
-    const partialKey = stdout.split('\n')[0];
-
-    console.log('partialKey', partialKey);
-
-    const options2nd = {
-        resolveWithFullResponse: true,
-        url: 'https://radiko.jp/v2/api/auth2',
-        headers: getHeaders2nd(authToken, partialKey)
-    };
-
-    return rp(options).then(body => {
-        console.log('2nd body', body);
-        res.status(200).end(err);
-    }).catch(err => {
-        console.log(err);
-        res.status(200).end(err);
     });
 });
 
