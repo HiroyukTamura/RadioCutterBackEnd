@@ -19,6 +19,7 @@ var path = require('path');
 var os = require('os');
 var ffmpeg = require('fluent-ffmpeg');
 var ffmpeg_static = require('ffmpeg-static');
+var fs = require('fs');
 
 admin.initializeApp();
 var fireStore = admin.firestore();
@@ -183,76 +184,108 @@ exports.testMethod = functions.region('asia-northeast1').https.onRequest(functio
     // if (object.name.split('/')[0] !== 'AacMp3')
     //     return
 
-    return ffmpegPromise().then(function () {
-        console.log('good work');
-    }).catch(function (e) {
-        console.log(e.message);
-    });
-    // const command = 'ffmpeg -y -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug'+ __dirname  +'/output.mp3';
-    // console.log(command);
-    // return exec(command).then(result => {
-    //     console.log(result.stdout);
-    //     console.log(result.stdin);
+    // return ffmpegPromise().then(()=> {
+    //     console.log('good work');
     // }).catch(e => {
-    //     console.warn(e.message);
+    //     console.log(e.message);
     // });
+    var command = 'ffmpeg -y -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug' + __dirname + '/output.mp3';
+    console.log(command);
+    exec(command);
+
+    return null;
 });
 
 exports.generateThumbnail = functions.storage.object().onFinalize(function () {
     var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(object) {
-        var bucket, tempFilePath, outputName, outputFilePath, command, uploadPath;
+        var bucket, results, metaData, token, tempFilePath, outputName, outputFilePath, command, uploadPath, message;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
-                        console.log(object.name);
                         bucket = gcs.bucket(object.bucket);
-                        tempFilePath = path.join(os.tmpdir(), object.name);
+                        _context.next = 3;
+                        return bucket.file(object.name).getMetadata().catch(function (e) {
+                            console.error(e);
+                            return null;
+                        });
+
+                    case 3:
+                        results = _context.sent;
+                        metaData = results[0];
+                        token = metaData.token;
+
+
+                        console.log('token', token);
+
+                        tempFilePath = path.join(os.tmpdir(), path.basename(object.name));
 
                         if (!(object.name.split('/')[0] !== 'AacMp3')) {
-                            _context.next = 5;
+                            _context.next = 10;
                             break;
                         }
 
                         return _context.abrupt('return');
 
-                    case 5:
+                    case 10:
 
                         console.log('hmm');
 
-                        outputName = object.name.split('/')[0] + '/mp3';
+                        outputName = path.basename(object.name, '.aac') + '.mp3';
                         outputFilePath = path.join(os.tmpdir(), outputName);
 
                         console.log('outputFilePath', outputFilePath);
 
-                        _context.next = 11;
-                        return bucket.file(filePath).download({
+                        _context.next = 16;
+                        return bucket.file(object.name).download({
                             destination: tempFilePath
                         });
 
-                    case 11:
-                        command = 'ffmpeg -y -i ' + tempFilePath + ' -codec:a libmp3lame ' + outputFilePath;
+                    case 16:
 
+                        fs.closeSync(fs.openSync(outputFilePath, 'w')); //空ファイルを作成
+                        command = ffmpeg_static.path + ' -y -i ' + tempFilePath + ' -codec:a libmp3lame -loglevel debug ' + outputFilePath;
+
+                        console.log(command);
                         exec(command);
 
-                        console.log('mp3 created at', outputFilePath);
-                        // We add a 'thumb_' prefix to thumbnails file name. That's where we'll upload the thumbnail.
-                        uploadPath = path.join(path.dirname(filePath), outputFilePath);
-                        // Uploading the thumbnail.
-
-                        _context.next = 17;
+                        uploadPath = path.join(path.dirname(object.bucket), '.mp3');
+                        _context.next = 23;
                         return bucket.upload(outputFilePath, {
-                            destination: uploadPath
+                            destination: uploadPath,
+                            metadata: object.metadata
                         });
 
-                    case 17:
+                    case 23:
 
                         fs.unlinkSync(tempFilePath);
                         fs.unlinkSync(outputFilePath);
 
+                        _context.next = 27;
+                        return bucket.file(object.name).delete();
+
+                    case 27:
+                        _context.next = 29;
+                        return _context.sent;
+
+                    case 29:
+                        message = {
+                            "message": {
+                                "token": token,
+                                "data": {
+                                    uploadPath: uploadPath
+                                }
+                            }
+                        };
+                        _context.next = 32;
+                        return admin.messaging().send(message).catch(function (e) {
+                            console.error(e);
+                        });
+
+                    case 32:
                         return _context.abrupt('return', null);
 
-                    case 20:
+                    case 33:
                     case 'end':
                         return _context.stop();
                 }
@@ -265,25 +298,36 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
     };
 }());
 
-var ffmpegPromise = function ffmpegPromise() {
-    return new Promise(function (resolve, reject) {
-        ffmpeg(__dirname + '/sample_input.aac').setFfmpegPath(ffmpeg_static.path).audioCodec('libmp3lame').on('start', function (commandLine) {
-            console.log('Spawned Ffmpeg with command: ' + commandLine);
-        }).on('error', function (err, stdout, stderr) {
-            console.log('Cannot process video: ' + err.message);
-            reject(err);
-        }).on('end', function (stdout, stderr) {
-            console.log('Transcoding s  ucceeded !');
-            resolve();
-        }).on('progress', function (progress) {
-            console.log('Processing: ' + progress.percent + '% done');
-        }).inputOptions(['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'])
-        // .outputOptions([
-        //     '-codec:a libmp3lame'
-        // ])
-        .output(__dirname + '/output.mp3').run();
-    });
-};
+// const ffmpegPromise = ()=> {
+//     return new Promise((resolve, reject) => {
+//         ffmpeg(__dirname +'/sample_input.aac')
+//             .setFfmpegPath(ffmpeg_static.path)
+//             .audioCodec('libmp3lame')
+//             .on('start', commandLine => {
+//                 console.log('Spawned Ffmpeg with command: ' + commandLine);
+//             })
+//             .on('error', (err, stdout, stderr) => {
+//                 console.log('Cannot process video: ' + err.message);
+//                 reject(err);
+//             })
+//             .on('end', (stdout, stderr) => {
+//                 console.log('Transcoding s  ucceeded !');
+//                 resolve();
+//             })
+//             .on('progress', progress => {
+//                 console.log('Processing: ' + progress.percent + '% done');
+//             })
+//             .inputOptions([
+//                 '-protocol_whitelist', 'file,http,https,tcp,tls,crypto'
+//             ])
+//             // .outputOptions([
+//             //     '-codec:a libmp3lame'
+//             // ])
+//             .output(__dirname  +'/output.mp3')
+//             .run();
+//     });
+// };
+
 
 function postError(witchErr, e) {
     fireStore.collection('request1st').doc().set({

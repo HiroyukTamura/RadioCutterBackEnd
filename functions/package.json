@@ -13,6 +13,9 @@
   "dependencies": {
     "@google-cloud/common-grpc": "^0.9.0",
     "@google-cloud/functions-emulator": "^1.0.0-beta.5",
+    "@google-cloud/storage": "^1.7.0",
+    "fluent-ffmpeg": "~2.1.2",
+    "ffmpeg-static": "~2.3.0",
     "babel-polyfill": "^6.26.0",
     "cheerio": "^1.0.0-rc.2",
     "child-process-promise": "^2.2.1",
