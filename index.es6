@@ -12,11 +12,19 @@ const exec = require('child-process-promise').exec;
 const gcs = require('@google-cloud/storage')();
 const path = require('path');
 const os = require('os');
-const ffmpeg = require('fluent-ffmpeg');
+// const ffmpeg = require('fluent-ffmpeg');
 const ffmpeg_static = require('ffmpeg-static');
 const fs = require('fs');
+const ffmpeg = require('android-ffmpeg-wrpaeer');
 
-admin.initializeApp();
+
+var serviceAccount = require('./radiko-7e63e-firebase-adminsdk-fikz0-9d7213ff57.json');
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://radiko-7e63e.firebaseio.com"
+});
+
 const fireStore = admin.firestore();
 fireStore.settings({
     timestampsInSnapshots: true
@@ -190,7 +198,7 @@ exports.testMethod = functions.region('asia-northeast1')
         // }).catch(e => {
         //     console.log(e.message);
         // });
-        const command = 'ffmpeg -y -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug'+ __dirname  +'/output.mp3';
+        const command = require('@ffmpeg-installer/ffmpeg').path +' -y -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug '+ __dirname  +'/output.mp3';
         console.log(command);
         exec(command);
 
@@ -198,9 +206,9 @@ exports.testMethod = functions.region('asia-northeast1')
     });
 
 
-exports.generateThumbnail = functions.storage.object().onFinalize(async object => {
+exports.generateThumbnail = functions.storage.object().onFinalize(object => {
     const bucket = gcs.bucket(object.bucket);
-    const results = await bucket.file(object.name).getMetadata().catch(e => {
+    const results = await bucket.file(object.name).getMetadata().then(results).catch(e => {
         console.error(e);
         return null;
     });
@@ -213,9 +221,9 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async object =
     const tempFilePath = path.join(os.tmpdir(), path.basename(object.name));
 
     if (object.name.split('/')[0] !== 'AacMp3')
-        return;
+        return null;
 
-    console.log('hmm');
+    console.log('hmm...');
 
 
     const outputName = path.basename(object.name, '.aac') +'.mp3';
@@ -224,31 +232,40 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async object =
 
     await bucket.file(object.name).download({
         destination: tempFilePath,
+    }).catch(e => {
+        console.error(e);
+        return null;
     });
 
     fs.closeSync(fs.openSync(outputFilePath, 'w'));//空ファイルを作成
-    const command = ffmpeg_static.path +' -y -i '+ tempFilePath +' -codec:a libmp3lame -loglevel debug '+ outputFilePath;
+    // const command = ffmpeg.getCurrentDir() +'/ffmpeg -y -i '+ tempFilePath +' -codec:a libmp3lame '+ outputFilePath;
+    const command = require('@ffmpeg-installer/ffmpeg').path +' -y -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug '+ outputFilePath;
     console.log(command);
-    exec(command);
 
+    execSync(command);
 
-    const uploadPath = path.join(path.dirname(object.bucket), '.mp3');
+    const uploadPath = object.name.split('.')[0] + '.mp3';
+    console.log(uploadPath);
+
     await bucket.upload(outputFilePath, {
-        destination: uploadPath,
-        metadata: object.metadata
+        destination: uploadPath
+    }).catch(e => {
+        console.error(e);
+        return null;
     });
 
     fs.unlinkSync(tempFilePath);
     fs.unlinkSync(outputFilePath);
 
-    await await bucket.file(object.name).delete();
+    await bucket.file(object.name).delete().catch(e => {
+        console.error(e);
+        return null;
+    });
 
     const message = {
-        "message":{
-            "token": token,
-            "data": {
-                uploadPath: uploadPath
-            }
+        token: 'sample_token',
+        data: {
+            uploadPath: uploadPath
         }
     };
 

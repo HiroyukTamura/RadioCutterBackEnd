@@ -17,11 +17,18 @@ var exec = require('child-process-promise').exec;
 var gcs = require('@google-cloud/storage')();
 var path = require('path');
 var os = require('os');
-var ffmpeg = require('fluent-ffmpeg');
+// const ffmpeg = require('fluent-ffmpeg');
 var ffmpeg_static = require('ffmpeg-static');
 var fs = require('fs');
+var ffmpeg = require('android-ffmpeg-wrpaeer');
 
-admin.initializeApp();
+var serviceAccount = require('./radiko-7e63e-firebase-adminsdk-fikz0-9d7213ff57.json');
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://radiko-7e63e.firebaseio.com"
+});
+
 var fireStore = admin.firestore();
 fireStore.settings({
     timestampsInSnapshots: true
@@ -189,7 +196,7 @@ exports.testMethod = functions.region('asia-northeast1').https.onRequest(functio
     // }).catch(e => {
     //     console.log(e.message);
     // });
-    var command = 'ffmpeg -y -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug' + __dirname + '/output.mp3';
+    var command = require('@ffmpeg-installer/ffmpeg').path + ' -y -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug ' + __dirname + '/output.mp3';
     console.log(command);
     exec(command);
 
@@ -225,11 +232,11 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
                             break;
                         }
 
-                        return _context.abrupt('return');
+                        return _context.abrupt('return', null);
 
                     case 10:
 
-                        console.log('hmm');
+                        console.log('hmm...');
 
                         outputName = path.basename(object.name, '.aac') + '.mp3';
                         outputFilePath = path.join(os.tmpdir(), outputName);
@@ -239,53 +246,60 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
                         _context.next = 16;
                         return bucket.file(object.name).download({
                             destination: tempFilePath
+                        }).catch(function (e) {
+                            console.error(e);
+                            return null;
                         });
 
                     case 16:
 
                         fs.closeSync(fs.openSync(outputFilePath, 'w')); //空ファイルを作成
-                        command = ffmpeg_static.path + ' -y -i ' + tempFilePath + ' -codec:a libmp3lame -loglevel debug ' + outputFilePath;
+                        // const command = ffmpeg.getCurrentDir() +'/ffmpeg -y -i '+ tempFilePath +' -codec:a libmp3lame '+ outputFilePath;
+                        command = require('@ffmpeg-installer/ffmpeg').path + ' -y -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug ' + outputFilePath;
 
                         console.log(command);
-                        exec(command);
 
-                        uploadPath = path.join(path.dirname(object.bucket), '.mp3');
-                        _context.next = 23;
+                        execSync(command);
+
+                        uploadPath = object.name.split('.')[0] + '.mp3';
+
+                        console.log(uploadPath);
+
+                        _context.next = 24;
                         return bucket.upload(outputFilePath, {
-                            destination: uploadPath,
-                            metadata: object.metadata
+                            destination: uploadPath
+                        }).catch(function (e) {
+                            console.error(e);
+                            return null;
                         });
 
-                    case 23:
+                    case 24:
 
                         fs.unlinkSync(tempFilePath);
                         fs.unlinkSync(outputFilePath);
 
-                        _context.next = 27;
-                        return bucket.file(object.name).delete();
+                        _context.next = 28;
+                        return bucket.file(object.name).delete().catch(function (e) {
+                            console.error(e);
+                            return null;
+                        });
 
-                    case 27:
-                        _context.next = 29;
-                        return _context.sent;
-
-                    case 29:
+                    case 28:
                         message = {
-                            "message": {
-                                "token": token,
-                                "data": {
-                                    uploadPath: uploadPath
-                                }
+                            token: token,
+                            data: {
+                                uploadPath: uploadPath
                             }
                         };
-                        _context.next = 32;
+                        _context.next = 31;
                         return admin.messaging().send(message).catch(function (e) {
                             console.error(e);
                         });
 
-                    case 32:
+                    case 31:
                         return _context.abrupt('return', null);
 
-                    case 33:
+                    case 32:
                     case 'end':
                         return _context.stop();
                 }
