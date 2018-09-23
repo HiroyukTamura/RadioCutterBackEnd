@@ -271,3 +271,4 @@ typings/
 # Serverless directories
 .serverless
 
+/functions/ffmpeg/

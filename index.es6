@@ -9,6 +9,11 @@ const request = require('request');
 const rp = require('request-promise');
 const cheerio = require('cheerio');
 const exec = require('child-process-promise').exec;
+const gcs = require('@google-cloud/storage')();
+const path = require('path');
+const os = require('os');
+const ffmpeg = require('fluent-ffmpeg');
+const ffmpeg_static = require('ffmpeg-static');
 
 admin.initializeApp();
 const fireStore = admin.firestore();
@@ -173,13 +178,88 @@ exports.request1st = functions.region('asia-northeast1')
     // });
 });
 
+exports.testMethod = functions.region('asia-northeast1')
+    .https.onRequest((req, res) => {
+        res.status(200).end();
+        // if (object.name.split('/')[0] !== 'AacMp3')
+        //     return
 
-exports.generateThumbnail = functions.storage.object().onFinalize(object => {
+        // return ffmpegPromise().then(()=> {
+        //     console.log('good work');
+        // }).catch(e => {
+        //     console.log(e.message);
+        // });
+        const command = 'ffmpeg -y -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug'+ __dirname  +'/output.mp3';
+        console.log(command);
+        exec(command);
+
+        return null;
+    });
+
+
+exports.generateThumbnail = functions.storage.object().onFinalize(async object => {
     console.log(object.name);
-    if (object.name.split('/')[0] === 'AacMp3') {
-        console.log('good work.');
-    }
+    const bucket = gcs.bucket(object.bucket);
+    const tempFilePath = path.join(os.tmpdir(), object.name);
+
+    if (object.name.split('/')[0] !== 'AacMp3')
+        return;
+
+    console.log('hmm');
+
+    const outputName = object.name.split('/')[0] + '/mp3';
+    const outputFilePath = path.join(os.tmpdir(), outputName);
+    console.log('outputFilePath', outputFilePath);
+
+    await bucket.file(filePath).download({
+        destination: tempFilePath,
+    });
+    const command = 'ffmpeg -y -i '+ tempFilePath +' -codec:a libmp3lame '+ outputFilePath;
+    exec(command);
+
+    console.log('mp3 created at', outputFilePath);
+    // We add a 'thumb_' prefix to thumbnails file name. That's where we'll upload the thumbnail.
+    const uploadPath = path.join(path.dirname(filePath), outputFilePath);
+    // Uploading the thumbnail.
+    await bucket.upload(outputFilePath, {
+        destination: uploadPath,
+    });
+
+    fs.unlinkSync(tempFilePath);
+    fs.unlinkSync(outputFilePath);
+
+    return null;
 });
+
+const ffmpegPromise = ()=> {
+    return new Promise((resolve, reject) => {
+        ffmpeg(__dirname +'/sample_input.aac')
+            .setFfmpegPath(ffmpeg_static.path)
+            .audioCodec('libmp3lame')
+            .on('start', commandLine => {
+                console.log('Spawned Ffmpeg with command: ' + commandLine);
+            })
+            .on('error', (err, stdout, stderr) => {
+                console.log('Cannot process video: ' + err.message);
+                reject(err);
+            })
+            .on('end', (stdout, stderr) => {
+                console.log('Transcoding s  ucceeded !');
+                resolve();
+            })
+            .on('progress', progress => {
+                console.log('Processing: ' + progress.percent + '% done');
+            })
+            .inputOptions([
+                '-protocol_whitelist', 'file,http,https,tcp,tls,crypto'
+            ])
+            // .outputOptions([
+            //     '-codec:a libmp3lame'
+            // ])
+            .output(__dirname  +'/output.mp3')
+            .run();
+    });
+};
 
 
 function postError(witchErr, e) {

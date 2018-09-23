@@ -2,6 +2,8 @@
 
 require('babel-polyfill');
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 var functions = require('firebase-functions');
 var admin = require('firebase-admin');
 
@@ -12,6 +14,11 @@ var request = require('request');
 var rp = require('request-promise');
 var cheerio = require('cheerio');
 var exec = require('child-process-promise').exec;
+var gcs = require('@google-cloud/storage')();
+var path = require('path');
+var os = require('os');
+var ffmpeg = require('fluent-ffmpeg');
+var ffmpeg_static = require('ffmpeg-static');
 
 admin.initializeApp();
 var fireStore = admin.firestore();
@@ -171,12 +178,112 @@ exports.request1st = functions.region('asia-northeast1').https.onRequest(functio
     // });
 });
 
-exports.generateThumbnail = functions.storage.object().onFinalize(function (object) {
-    console.log(object.name);
-    if (object.name.split('/')[0] === 'AacMp3') {
-        console.log('good work.');
-    }
+exports.testMethod = functions.region('asia-northeast1').https.onRequest(function (req, res) {
+    res.status(200).end();
+    // if (object.name.split('/')[0] !== 'AacMp3')
+    //     return
+
+    return ffmpegPromise().then(function () {
+        console.log('good work');
+    }).catch(function (e) {
+        console.log(e.message);
+    });
+    // const command = 'ffmpeg -y -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug'+ __dirname  +'/output.mp3';
+    // console.log(command);
+    // return exec(command).then(result => {
+    //     console.log(result.stdout);
+    //     console.log(result.stdin);
+    // }).catch(e => {
+    //     console.warn(e.message);
+    // });
 });
+
+exports.generateThumbnail = functions.storage.object().onFinalize(function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(object) {
+        var bucket, tempFilePath, outputName, outputFilePath, command, uploadPath;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+                switch (_context.prev = _context.next) {
+                    case 0:
+                        console.log(object.name);
+                        bucket = gcs.bucket(object.bucket);
+                        tempFilePath = path.join(os.tmpdir(), object.name);
+
+                        if (!(object.name.split('/')[0] !== 'AacMp3')) {
+                            _context.next = 5;
+                            break;
+                        }
+
+                        return _context.abrupt('return');
+
+                    case 5:
+
+                        console.log('hmm');
+
+                        outputName = object.name.split('/')[0] + '/mp3';
+                        outputFilePath = path.join(os.tmpdir(), outputName);
+
+                        console.log('outputFilePath', outputFilePath);
+
+                        _context.next = 11;
+                        return bucket.file(filePath).download({
+                            destination: tempFilePath
+                        });
+
+                    case 11:
+                        command = 'ffmpeg -y -i ' + tempFilePath + ' -codec:a libmp3lame ' + outputFilePath;
+
+                        exec(command);
+
+                        console.log('mp3 created at', outputFilePath);
+                        // We add a 'thumb_' prefix to thumbnails file name. That's where we'll upload the thumbnail.
+                        uploadPath = path.join(path.dirname(filePath), outputFilePath);
+                        // Uploading the thumbnail.
+
+                        _context.next = 17;
+                        return bucket.upload(outputFilePath, {
+                            destination: uploadPath
+                        });
+
+                    case 17:
+
+                        fs.unlinkSync(tempFilePath);
+                        fs.unlinkSync(outputFilePath);
+
+                        return _context.abrupt('return', null);
+
+                    case 20:
+                    case 'end':
+                        return _context.stop();
+                }
+            }
+        }, _callee, undefined);
+    }));
+
+    return function (_x) {
+        return _ref.apply(this, arguments);
+    };
+}());
+
+var ffmpegPromise = function ffmpegPromise() {
+    return new Promise(function (resolve, reject) {
+        ffmpeg(__dirname + '/sample_input.aac').setFfmpegPath(ffmpeg_static.path).audioCodec('libmp3lame').on('start', function (commandLine) {
+            console.log('Spawned Ffmpeg with command: ' + commandLine);
+        }).on('error', function (err, stdout, stderr) {
+            console.log('Cannot process video: ' + err.message);
+            reject(err);
+        }).on('end', function (stdout, stderr) {
+            console.log('Transcoding s  ucceeded !');
+            resolve();
+        }).on('progress', function (progress) {
+            console.log('Processing: ' + progress.percent + '% done');
+        }).inputOptions(['-protocol_whitelist', 'file,http,https,tcp,tls,crypto'])
+        // .outputOptions([
+        //     '-codec:a libmp3lame'
+        // ])
+        .output(__dirname + '/output.mp3').run();
+    });
+};
 
 function postError(witchErr, e) {
     fireStore.collection('request1st').doc().set({
