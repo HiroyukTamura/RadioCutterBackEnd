@@ -111,7 +111,8 @@ exports.request1st = functions.region('asia-northeast1').https.onRequest(functio
 
     var options = {
         resolveWithFullResponse: true,
-        url: 'https://radiko.jp/v2/api/auth1',
+        host: 'https://radiko.jp',
+        path: 'v2/api/auth1',
         headers: headers1st(version)
     };
 
@@ -168,6 +169,13 @@ exports.request1st = functions.region('asia-northeast1').https.onRequest(functio
     //     console.error(e);
     //     return res.status(200).end(e);
     // });
+});
+
+exports.generateThumbnail = functions.storage.object().onFinalize(function (object) {
+    console.log(object.name);
+    if (object.name.split('/')[0] === 'AacMp3') {
+        console.log('good work.');
+    }
 });
 
 function postError(witchErr, e) {

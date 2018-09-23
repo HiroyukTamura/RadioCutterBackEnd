@@ -174,6 +174,13 @@ exports.request1st = functions.region('asia-northeast1')
 });
 
 
+exports.generateThumbnail = functions.storage.object().onFinalize(object => {
+    console.log(object.name);
+    if (object.name.split('/')[0] === 'AacMp3') {
+        console.log('good work.');
+    }
+});
+
 
 function postError(witchErr, e) {
     fireStore.collection('request1st')
