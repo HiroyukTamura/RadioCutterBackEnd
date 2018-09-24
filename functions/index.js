@@ -190,7 +190,7 @@ exports.request1st = functions.region('asia-northeast1').https.onRequest(functio
 
 exports.testMethod = functions.region('asia-northeast1').https.onRequest(function () {
     var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
-        var command;
+        var command, args, output;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
@@ -206,7 +206,16 @@ exports.testMethod = functions.region('asia-northeast1').https.onRequest(functio
                         command = ffmpeg_static.path + ' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug ' + __dirname + '/output.mp3';
 
                         console.log(command);
-                        exec(command, { timeout: 30 * 1000 });
+                        // execSync(command, {timeout: 30 * 1000});
+                        //
+                        // console.log('post msg.');
+
+                        args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', __dirname + '/sample_input.aac', '-codec:a', 'libmp3lame', __dirname + '/output.mp3'];
+
+                        console.log(args);
+                        output = spawnSync(ffmpeg_static.path, args, { timeout: 40 * 1000 });
+
+                        console.log(output.stderr, output.error);
 
                         // const process = exec(command, (error, stdout, stderr) => {
                         //     if (error)
@@ -229,7 +238,9 @@ exports.testMethod = functions.region('asia-northeast1').https.onRequest(functio
 
                         res.status(200).end();
 
-                    case 4:
+                        return _context.abrupt('return', null);
+
+                    case 8:
                     case 'end':
                         return _context.stop();
                 }
@@ -244,7 +255,7 @@ exports.testMethod = functions.region('asia-northeast1').https.onRequest(functio
 
 exports.generateThumbnail = functions.storage.object().onFinalize(function () {
     var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(object) {
-        var bucket, results, metaData, token, tempFilePath, outputName, outputFilePath, command, uploadPath, message;
+        var bucket, results, metaData, token, tempFilePath, outputName, outputFilePath, args, output, uploadPath, message;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
             while (1) {
                 switch (_context2.prev = _context2.next) {
@@ -297,11 +308,15 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
                         console.log('ふにふに');
                         fs.closeSync(fs.openSync(outputFilePath, 'w')); //空ファイルを作成
                         // const command = ffmpeg.getCurrentDir() +'/ffmpeg -y -i '+ tempFilePath +' -codec:a libmp3lame '+ outputFilePath;
-                        command = ffmpeg_static.path + ' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame ' + outputFilePath;
+                        // const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame '+ outputFilePath;
+                        // console.log(command);
 
-                        console.log(command);
+                        args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', __dirname + '/sample_input.aac', '-codec:a', 'libmp3lame', outputFilePath];
 
-                        execSync(command, { timeout: 40 * 1000 });
+                        console.log(args);
+                        output = spawnSync(ffmpeg_static.path, args, { timeout: 40 * 1000 });
+
+                        console.log(output.toString(), output.stdout, output.stderr, output.error);
 
                         // await execPromise(command).catch(e => {
                         //     console.error(e);
@@ -326,7 +341,7 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
 
                         console.log('uploadPath', uploadPath);
 
-                        _context2.next = 26;
+                        _context2.next = 27;
                         return bucket.upload(outputFilePath, {
                             destination: uploadPath
                         }).catch(function (e) {
@@ -334,33 +349,33 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
                             return null;
                         });
 
-                    case 26:
+                    case 27:
 
                         fs.unlinkSync(tempFilePath);
                         fs.unlinkSync(outputFilePath);
 
-                        _context2.next = 30;
+                        _context2.next = 31;
                         return bucket.file(object.name).delete().catch(function (e) {
                             console.error(e);
                             return null;
                         });
 
-                    case 30:
+                    case 31:
                         message = {
                             token: 'sample_token',
                             data: {
                                 uploadPath: uploadPath
                             }
                         };
-                        _context2.next = 33;
+                        _context2.next = 34;
                         return admin.messaging().send(message).catch(function (e) {
                             console.error(e);
                         });
 
-                    case 33:
+                    case 34:
                         return _context2.abrupt('return', _context2.sent);
 
-                    case 34:
+                    case 35:
                     case 'end':
                         return _context2.stop();
                 }

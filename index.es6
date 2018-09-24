@@ -199,7 +199,14 @@ exports.testMethod = functions.region('asia-northeast1')
         // });
         const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug '+ __dirname  +'/output.mp3';
         console.log(command);
-        exec(command, {timeout: 30 * 1000});
+        // execSync(command, {timeout: 30 * 1000});
+        //
+        // console.log('post msg.');
+
+        const args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', __dirname +'/sample_input.aac', '-codec:a', 'libmp3lame', __dirname +'/output.mp3'];
+        console.log(args);
+        const output = spawnSync(ffmpeg_static.path, args, {timeout: 40 * 1000});
+        console.log(output.stderr, output.error);
 
         // const process = exec(command, (error, stdout, stderr) => {
         //     if (error)
@@ -221,6 +228,8 @@ exports.testMethod = functions.region('asia-northeast1')
         // });
 
         res.status(200).end();
+
+        return null;
     });
 
 
@@ -263,10 +272,13 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async object =
     console.log('ふにふに');
     fs.closeSync(fs.openSync(outputFilePath, 'w'));//空ファイルを作成
     // const command = ffmpeg.getCurrentDir() +'/ffmpeg -y -i '+ tempFilePath +' -codec:a libmp3lame '+ outputFilePath;
-    const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame '+ outputFilePath;
-    console.log(command);
+    // const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame '+ outputFilePath;
+    // console.log(command);
 
-    execSync(command, {timeout: 40 * 1000});
+    const args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', __dirname +'/sample_input.aac', '-codec:a', 'libmp3lame', outputFilePath];
+    console.log(args);
+    const output = spawnSync(ffmpeg_static.path, args, {timeout: 40 * 1000});
+    console.log(output.toString(), output.stdout, output.stderr, output.error);
 
     // await execPromise(command).catch(e => {
     //     console.error(e);
