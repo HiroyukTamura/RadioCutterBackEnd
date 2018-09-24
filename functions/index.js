@@ -8,12 +8,14 @@ var functions = require('firebase-functions');
 var admin = require('firebase-admin');
 
 var _require = require('child_process'),
-    execSync = _require.execSync;
+    execSync = _require.execSync,
+    spawnSync = _require.spawnSync,
+    exec = _require.exec;
 
 var request = require('request');
 var rp = require('request-promise');
 var cheerio = require('cheerio');
-var exec = require('child-process-promise').exec;
+// const exec = require('child-process-promise').exec;
 var gcs = require('@google-cloud/storage')();
 var path = require('path');
 var os = require('os');
@@ -186,39 +188,84 @@ exports.request1st = functions.region('asia-northeast1').https.onRequest(functio
     // });
 });
 
-exports.testMethod = functions.region('asia-northeast1').https.onRequest(function (req, res) {
-    res.status(200).end();
-    // if (object.name.split('/')[0] !== 'AacMp3')
-    //     return
-
-    // return ffmpegPromise().then(()=> {
-    //     console.log('good work');
-    // }).catch(e => {
-    //     console.log(e.message);
-    // });
-    var command = require('@ffmpeg-installer/ffmpeg').path + ' -y -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug ' + __dirname + '/output.mp3';
-    console.log(command);
-    exec(command);
-
-    return null;
-});
-
-exports.generateThumbnail = functions.storage.object().onFinalize(function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(object) {
-        var bucket, results, metaData, token, tempFilePath, outputName, outputFilePath, command, uploadPath, message;
+exports.testMethod = functions.region('asia-northeast1').https.onRequest(function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
+        var command;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
+                        // if (object.name.split('/')[0] !== 'AacMp3')
+                        //     return
+
+                        // return ffmpegPromise().then(()=> {
+                        //     console.log('good work');
+                        // }).catch(e => {
+                        //     console.log(e.message);
+                        // });
+                        command = ffmpeg_static.path + ' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug ' + __dirname + '/output.mp3';
+
+                        console.log(command);
+                        exec(command, { timeout: 30 * 1000 });
+
+                        // const process = exec(command, (error, stdout, stderr) => {
+                        //     if (error)
+                        //         console.error(error);
+                        //     if (stderr)
+                        //         console.error(error)
+                        //
+                        //     console.log('まさかの完了');
+                        // });
+                        //
+                        // await sleep(20 * 1000);
+                        //
+                        // if (process)
+                        //     process.kill();
+
+                        // await execPromise(command).catch(e => {
+                        //     console.error(e);
+                        //     return null;
+                        // });
+
+                        res.status(200).end();
+
+                    case 4:
+                    case 'end':
+                        return _context.stop();
+                }
+            }
+        }, _callee, undefined);
+    }));
+
+    return function (_x, _x2) {
+        return _ref.apply(this, arguments);
+    };
+}());
+
+exports.generateThumbnail = functions.storage.object().onFinalize(function () {
+    var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(object) {
+        var bucket, results, metaData, token, tempFilePath, outputName, outputFilePath, command, uploadPath, message;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+            while (1) {
+                switch (_context2.prev = _context2.next) {
+                    case 0:
+                        if (!(object.name.split('/')[0] !== 'AacMp3' || path.extname(object.name).toLowerCase() === '.mp3')) {
+                            _context2.next = 2;
+                            break;
+                        }
+
+                        return _context2.abrupt('return', null);
+
+                    case 2:
                         bucket = gcs.bucket(object.bucket);
-                        _context.next = 3;
+                        _context2.next = 5;
                         return bucket.file(object.name).getMetadata().catch(function (e) {
                             console.error(e);
                             return null;
                         });
 
-                    case 3:
-                        results = _context.sent;
+                    case 5:
+                        results = _context2.sent;
                         metaData = results[0];
                         token = metaData.token;
 
@@ -227,23 +274,17 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
 
                         tempFilePath = path.join(os.tmpdir(), path.basename(object.name));
 
-                        if (!(object.name.split('/')[0] !== 'AacMp3')) {
-                            _context.next = 10;
-                            break;
-                        }
 
-                        return _context.abrupt('return', null);
-
-                    case 10:
-
-                        console.log('hmm...');
+                        console.log('tempFilePath', tempFilePath);
 
                         outputName = path.basename(object.name, '.aac') + '.mp3';
+
+                        console.log('outputName', outputName);
                         outputFilePath = path.join(os.tmpdir(), outputName);
 
                         console.log('outputFilePath', outputFilePath);
 
-                        _context.next = 16;
+                        _context2.next = 17;
                         return bucket.file(object.name).download({
                             destination: tempFilePath
                         }).catch(function (e) {
@@ -251,21 +292,41 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
                             return null;
                         });
 
-                    case 16:
+                    case 17:
 
+                        console.log('ふにふに');
                         fs.closeSync(fs.openSync(outputFilePath, 'w')); //空ファイルを作成
                         // const command = ffmpeg.getCurrentDir() +'/ffmpeg -y -i '+ tempFilePath +' -codec:a libmp3lame '+ outputFilePath;
-                        command = require('@ffmpeg-installer/ffmpeg').path + ' -y -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug ' + outputFilePath;
+                        command = ffmpeg_static.path + ' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame ' + outputFilePath;
 
                         console.log(command);
 
-                        execSync(command);
+                        execSync(command, { timeout: 40 * 1000 });
+
+                        // await execPromise(command).catch(e => {
+                        //     console.error(e);
+                        //     return null;
+                        // });
+
+                        // const process = exec(command, (error, stdout, stderr) => {
+                        //     if (error)
+                        //         console.error(error);
+                        //     if (stderr)
+                        //         console.error(error)
+                        //
+                        //     console.log('まさかの完了');
+                        // });
+                        //
+                        // await sleep(20 * 1000);
+
+                        // if (process)
+                        //     process.kill();
 
                         uploadPath = object.name.split('.')[0] + '.mp3';
 
-                        console.log(uploadPath);
+                        console.log('uploadPath', uploadPath);
 
-                        _context.next = 24;
+                        _context2.next = 26;
                         return bucket.upload(outputFilePath, {
                             destination: uploadPath
                         }).catch(function (e) {
@@ -273,44 +334,63 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
                             return null;
                         });
 
-                    case 24:
+                    case 26:
 
                         fs.unlinkSync(tempFilePath);
                         fs.unlinkSync(outputFilePath);
 
-                        _context.next = 28;
+                        _context2.next = 30;
                         return bucket.file(object.name).delete().catch(function (e) {
                             console.error(e);
                             return null;
                         });
 
-                    case 28:
+                    case 30:
                         message = {
-                            token: token,
+                            token: 'sample_token',
                             data: {
                                 uploadPath: uploadPath
                             }
                         };
-                        _context.next = 31;
+                        _context2.next = 33;
                         return admin.messaging().send(message).catch(function (e) {
                             console.error(e);
                         });
 
-                    case 31:
-                        return _context.abrupt('return', null);
+                    case 33:
+                        return _context2.abrupt('return', _context2.sent);
 
-                    case 32:
+                    case 34:
                     case 'end':
-                        return _context.stop();
+                        return _context2.stop();
                 }
             }
-        }, _callee, undefined);
+        }, _callee2, undefined);
     }));
 
-    return function (_x) {
-        return _ref.apply(this, arguments);
+    return function (_x3) {
+        return _ref2.apply(this, arguments);
     };
 }());
+
+// Makes an ffmpeg command return a promise.
+function execPromise(command) {
+    return new Promise(function (resolve, reject) {
+        var process = exec(command, function (error, stdout, stderr) {
+            if (error) return resolve(false);
+            if (stderr) return resolve(false);
+
+            resolve(true);
+        });
+
+        // setTimeout(() => {
+        //     // タイムアウト後に行う処理を書く
+        //     console.log('time out!');
+        //     process.kill();
+        //     resolve(true);
+        // }, 30 * 1000);
+    });
+}
 
 // const ffmpegPromise = ()=> {
 //     return new Promise((resolve, reject) => {
@@ -359,4 +439,8 @@ function atob(a) {
     return new Buffer(a, 'base64').toString('binary');
 }
 
-// const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
+var sleep = function sleep(msec) {
+    return new Promise(function (resolve) {
+        return setTimeout(resolve, msec);
+    });
+};

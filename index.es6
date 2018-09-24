@@ -4,11 +4,11 @@ import 'babel-polyfill'
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const { execSync } = require('child_process');
+const { execSync, spawnSync, exec } = require('child_process');
 const request = require('request');
 const rp = require('request-promise');
 const cheerio = require('cheerio');
-const exec = require('child-process-promise').exec;
+// const exec = require('child-process-promise').exec;
 const gcs = require('@google-cloud/storage')();
 const path = require('path');
 const os = require('os');
@@ -188,8 +188,7 @@ exports.request1st = functions.region('asia-northeast1')
 });
 
 exports.testMethod = functions.region('asia-northeast1')
-    .https.onRequest((req, res) => {
-        res.status(200).end();
+    .https.onRequest(async (req, res) => {
         // if (object.name.split('/')[0] !== 'AacMp3')
         //     return
 
@@ -198,17 +197,43 @@ exports.testMethod = functions.region('asia-northeast1')
         // }).catch(e => {
         //     console.log(e.message);
         // });
-        const command = require('@ffmpeg-installer/ffmpeg').path +' -y -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug '+ __dirname  +'/output.mp3';
+        const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug '+ __dirname  +'/output.mp3';
         console.log(command);
-        exec(command);
+        exec(command, {timeout: 30 * 1000});
 
-        return null;
+        // const process = exec(command, (error, stdout, stderr) => {
+        //     if (error)
+        //         console.error(error);
+        //     if (stderr)
+        //         console.error(error)
+        //
+        //     console.log('まさかの完了');
+        // });
+        //
+        // await sleep(20 * 1000);
+        //
+        // if (process)
+        //     process.kill();
+
+        // await execPromise(command).catch(e => {
+        //     console.error(e);
+        //     return null;
+        // });
+
+        res.status(200).end();
     });
 
 
-exports.generateThumbnail = functions.storage.object().onFinalize(object => {
+exports.generateThumbnail = functions.storage.object().onFinalize(async object => {
+
+    if (object.name.split('/')[0] !== 'AacMp3' || path.extname(object.name).toLowerCase() === '.mp3')
+        return null;
+
+
     const bucket = gcs.bucket(object.bucket);
-    const results = await bucket.file(object.name).getMetadata().then(results).catch(e => {
+
+
+    const results = await bucket.file(object.name).getMetadata().catch(e => {
         console.error(e);
         return null;
     });
@@ -220,13 +245,11 @@ exports.generateThumbnail = functions.storage.object().onFinalize(object => {
 
     const tempFilePath = path.join(os.tmpdir(), path.basename(object.name));
 
-    if (object.name.split('/')[0] !== 'AacMp3')
-        return null;
-
-    console.log('hmm...');
+    console.log('tempFilePath', tempFilePath);
 
 
     const outputName = path.basename(object.name, '.aac') +'.mp3';
+    console.log('outputName', outputName);
     const outputFilePath = path.join(os.tmpdir(), outputName);
     console.log('outputFilePath', outputFilePath);
 
@@ -237,15 +260,35 @@ exports.generateThumbnail = functions.storage.object().onFinalize(object => {
         return null;
     });
 
+    console.log('ふにふに');
     fs.closeSync(fs.openSync(outputFilePath, 'w'));//空ファイルを作成
     // const command = ffmpeg.getCurrentDir() +'/ffmpeg -y -i '+ tempFilePath +' -codec:a libmp3lame '+ outputFilePath;
-    const command = require('@ffmpeg-installer/ffmpeg').path +' -y -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug '+ outputFilePath;
+    const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame '+ outputFilePath;
     console.log(command);
 
-    execSync(command);
+    execSync(command, {timeout: 40 * 1000});
+
+    // await execPromise(command).catch(e => {
+    //     console.error(e);
+    //     return null;
+    // });
+
+    // const process = exec(command, (error, stdout, stderr) => {
+    //     if (error)
+    //         console.error(error);
+    //     if (stderr)
+    //         console.error(error)
+    //
+    //     console.log('まさかの完了');
+    // });
+    //
+    // await sleep(20 * 1000);
+
+    // if (process)
+    //     process.kill();
 
     const uploadPath = object.name.split('.')[0] + '.mp3';
-    console.log(uploadPath);
+    console.log('uploadPath', uploadPath);
 
     await bucket.upload(outputFilePath, {
         destination: uploadPath
@@ -269,12 +312,31 @@ exports.generateThumbnail = functions.storage.object().onFinalize(object => {
         }
     };
 
-    await admin.messaging().send(message).catch(e => {
+    return await admin.messaging().send(message).catch(e => {
         console.error(e);
     });
-
-    return null;
 });
+
+// Makes an ffmpeg command return a promise.
+function execPromise(command) {
+    return new Promise((resolve, reject) => {
+        const process = exec(command, (error, stdout, stderr) => {
+            if (error)
+                return resolve(false);
+            if (stderr)
+                return resolve(false);
+
+            resolve(true);
+        });
+
+        // setTimeout(() => {
+        //     // タイムアウト後に行う処理を書く
+        //     console.log('time out!');
+        //     process.kill();
+        //     resolve(true);
+        // }, 30 * 1000);
+    });
+}
 
 // const ffmpegPromise = ()=> {
 //     return new Promise((resolve, reject) => {
@@ -324,4 +386,4 @@ function atob(a) {
     return new Buffer(a, 'base64').toString('binary');
 }
 
-// const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
+const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
