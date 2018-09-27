@@ -190,57 +190,21 @@ exports.request1st = functions.region('asia-northeast1').https.onRequest(functio
 
 exports.testMethod = functions.region('asia-northeast1').https.onRequest(function () {
     var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
-        var command, args, output;
+        var json, gps;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
-                        // if (object.name.split('/')[0] !== 'AacMp3')
-                        //     return
+                        json = JSON.parse(fs.readFileSync('./gps.json', 'utf8'));
+                        gps = json['areaId_' + 4][0];
 
-                        // return ffmpegPromise().then(()=> {
-                        //     console.log('good work');
-                        // }).catch(e => {
-                        //     console.log(e.message);
-                        // });
-                        command = ffmpeg_static.path + ' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i ' + __dirname + '/sample_input.aac -codec:a libmp3lame -loglevel debug ' + __dirname + '/output.mp3';
-
-                        console.log(command);
-                        // execSync(command, {timeout: 30 * 1000});
-                        //
-                        // console.log('post msg.');
-
-                        args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', __dirname + '/sample_input.aac', '-codec:a', 'libmp3lame', __dirname + '/output.mp3'];
-
-                        console.log(args);
-                        output = spawnSync(ffmpeg_static.path, args, { timeout: 40 * 1000 });
-
-                        console.log(output.stderr, output.error);
-
-                        // const process = exec(command, (error, stdout, stderr) => {
-                        //     if (error)
-                        //         console.error(error);
-                        //     if (stderr)
-                        //         console.error(error)
-                        //
-                        //     console.log('まさかの完了');
-                        // });
-                        //
-                        // await sleep(20 * 1000);
-                        //
-                        // if (process)
-                        //     process.kill();
-
-                        // await execPromise(command).catch(e => {
-                        //     console.error(e);
-                        //     return null;
-                        // });
+                        console.log(gps);
 
                         res.status(200).end();
 
                         return _context.abrupt('return', null);
 
-                    case 8:
+                    case 5:
                     case 'end':
                         return _context.stop();
                 }
@@ -252,6 +216,11 @@ exports.testMethod = functions.region('asia-northeast1').https.onRequest(functio
         return _ref.apply(this, arguments);
     };
 }());
+
+exports.getGps = functions.https.onCall(function (data, context) {
+    var json = JSON.parse(fs.readFileSync('./gps.json', 'utf8'));
+    return json['areaId_' + data.areaId][0];
+});
 
 exports.generateThumbnail = functions.storage.object().onFinalize(function () {
     var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(object) {

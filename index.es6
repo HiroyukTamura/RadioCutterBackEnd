@@ -189,13 +189,19 @@ exports.request1st = functions.region('asia-northeast1')
 
 exports.testMethod = functions.region('asia-northeast1')
     .https.onRequest(async (req, res) => {
-
+        const json = JSON.parse(fs.readFileSync('./gps.json', 'utf8'));
+        const gps = json['areaId_'+ 4][0];
+        console.log(gps);
 
         res.status(200).end();
 
         return null;
     });
 
+exports.getGps = functions.https.onCall((data, context) => {
+    const json = JSON.parse(fs.readFileSync('./gps.json', 'utf-8'));
+    return json['areaId_'+ data.areaId][0];
+});
 
 exports.generateThumbnail = functions.storage.object().onFinalize(async object => {
 
