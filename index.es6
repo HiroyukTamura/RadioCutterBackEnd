@@ -189,43 +189,7 @@ exports.request1st = functions.region('asia-northeast1')
 
 exports.testMethod = functions.region('asia-northeast1')
     .https.onRequest(async (req, res) => {
-        // if (object.name.split('/')[0] !== 'AacMp3')
-        //     return
 
-        // return ffmpegPromise().then(()=> {
-        //     console.log('good work');
-        // }).catch(e => {
-        //     console.log(e.message);
-        // });
-        const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame -loglevel debug '+ __dirname  +'/output.mp3';
-        console.log(command);
-        // execSync(command, {timeout: 30 * 1000});
-        //
-        // console.log('post msg.');
-
-        const args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', __dirname +'/sample_input.aac', '-codec:a', 'libmp3lame', __dirname +'/output.mp3'];
-        console.log(args);
-        const output = spawnSync(ffmpeg_static.path, args, {timeout: 40 * 1000});
-        console.log(output.stderr, output.error);
-
-        // const process = exec(command, (error, stdout, stderr) => {
-        //     if (error)
-        //         console.error(error);
-        //     if (stderr)
-        //         console.error(error)
-        //
-        //     console.log('まさかの完了');
-        // });
-        //
-        // await sleep(20 * 1000);
-        //
-        // if (process)
-        //     process.kill();
-
-        // await execPromise(command).catch(e => {
-        //     console.error(e);
-        //     return null;
-        // });
 
         res.status(200).end();
 
@@ -275,10 +239,10 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async object =
     // const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame '+ outputFilePath;
     // console.log(command);
 
-    const args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', __dirname +'/sample_input.aac', '-codec:a', 'libmp3lame', outputFilePath];
+    const args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', tempFilePath, '-codec:a', 'libmp3lame', outputFilePath];
     console.log(args);
-    const output = spawnSync(ffmpeg_static.path, args, {timeout: 40 * 1000});
-    console.log(output.toString(), output.stdout, output.stderr, output.error);
+    const output = spawnSync(ffmpeg_static.path, args, {timeout: 400 * 1000});
+    console.log(output.stderr, output.error);
 
     // await execPromise(command).catch(e => {
     //     console.error(e);
@@ -303,7 +267,8 @@ exports.generateThumbnail = functions.storage.object().onFinalize(async object =
     console.log('uploadPath', uploadPath);
 
     await bucket.upload(outputFilePath, {
-        destination: uploadPath
+        destination: uploadPath,
+        resumable: false//tmpファイルに書き込む際、resumable:falseでなければならない @see https://cloud.google.com/nodejs/docs/reference/storage/1.7.x/Bucket#upload
     }).catch(e => {
         console.error(e);
         return null;

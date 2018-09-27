@@ -311,12 +311,12 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
                         // const command = ffmpeg_static.path +' -y -protocol_whitelist file,http,https,tcp,tls,crypto -i '+ __dirname +'/sample_input.aac -codec:a libmp3lame '+ outputFilePath;
                         // console.log(command);
 
-                        args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', __dirname + '/sample_input.aac', '-codec:a', 'libmp3lame', outputFilePath];
+                        args = ['-y', '-protocol_whitelist', 'file,http,https,tcp,tls,crypto', '-i', tempFilePath, '-codec:a', 'libmp3lame', outputFilePath];
 
                         console.log(args);
-                        output = spawnSync(ffmpeg_static.path, args, { timeout: 40 * 1000 });
+                        output = spawnSync(ffmpeg_static.path, args, { timeout: 400 * 1000 });
 
-                        console.log(output.toString(), output.stdout, output.stderr, output.error);
+                        console.log(output.stderr, output.error);
 
                         // await execPromise(command).catch(e => {
                         //     console.error(e);
@@ -343,7 +343,8 @@ exports.generateThumbnail = functions.storage.object().onFinalize(function () {
 
                         _context2.next = 27;
                         return bucket.upload(outputFilePath, {
-                            destination: uploadPath
+                            destination: uploadPath,
+                            resumable: false //tmpファイルに書き込む際、resumable:falseでなければならない @see https://cloud.google.com/nodejs/docs/reference/storage/1.7.x/Bucket#upload
                         }).catch(function (e) {
                             console.error(e);
                             return null;
