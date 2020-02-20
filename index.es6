@@ -59,45 +59,6 @@ const stationCodeArr = [["802","ABC","ABS","AFB","AIR-G","ALPHA-STATION","BAYFM7
     ["RN2","RNB","RNC","ROK","RSK","SBC","SBS","STV","TBC","TBS"],
     ["TOKAIRADIO","WBS","YBC","YBS","YFM","ZIP-FM"]];
 
-exports.getWeekPrg = functions.https.onRequest(async (req, res) => {
-    if (req.body.pass != 'radiko' || !req.body.witch || req.body.witch > 9)
-        res.status(403).end();
-    else {
-        await getWeekPrg(req.body.witch);
-        res.status(200).end();
-    }
-});
-
-const getWeekPrg = async (arrayNum) => {
-    for (const stCode of stationCodeArr[arrayNum]) {
-        const url = 'http://radiko.jp/v3/program/station/weekly/'+ stCode +'.xml';
-        const body = await rp(url).catch(e => {
-            console.error(e);
-        });
-
-        if (!body) continue;
-        const $ = cheerio.load(body);
-
-        const ttl = $(body).find('ttl').html();
-        const srvtime = $(body).find('srvtime').html();
-        const progs = $(body).find('progs');
-        for(let i=0; i<progs.length; i++){
-            const item = progs.eq(i);
-            const date = item.find('date').html();
-            await fireStore.collection('progs').doc(stCode).collection(date).doc('single').set({
-                ttl: ttl,
-                srvtime: srvtime,
-                date: date,
-                xml: '<progs>'+ item.html() +'</progs>'/*todo これ*/
-            }).catch(e => {
-                console.error(e);
-            });
-        }
-
-        console.info('完了:', stCode);
-    }
-};
-
 
 exports.request1st = functions.https.onCall(async (data, context) => {
 // exports.request1st = functions.https.onRequest(async (req, res) => {
