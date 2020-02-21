@@ -9,7 +9,7 @@ export class FirestoreClient {
         this.firestore = admin.firestore();
     }
 
-    async postRemoteFfmpegStatus(data: FfmpegRequestData) {
+    async postRemoteFfmpegStatus(data: FfmpegRequestData, url?: string) {
 
         const query = this.firestore.collection('remoteFfmpegStatus')
             .where('format', '==', data.format)
@@ -17,19 +17,23 @@ export class FirestoreClient {
             .where('ft', '==', data.ft)
             .where('to', '==', data.to);
 
-        return this.firestore.runTransaction( (transaction) =>
+        return this.firestore.runTransaction((transaction) =>
             transaction.get(query).then(value => {
                 if (!value.empty)
                     return Promise.reject();
 
                 const doc = this.firestore.collection('remoteFfmpegStatus').doc();
 
-                return transaction.set(doc ,{
+                const documentData: any = {
                     format: data.format,
                     station: data.station,
                     ft: data.ft,
                     to: data.to,
-                });
+                };
+                if (url)
+                    documentData.url = url;
+
+                return transaction.set(doc, documentData);
             }).catch(e => Promise.reject(e))
         );
     }

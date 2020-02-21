@@ -11,6 +11,7 @@
     "build": "./node_modules/.bin/tslint -p tslint.json && ./node_modules/.bin/tsc"
   },
   "dependencies": {
+    "@google-cloud/storage": "^4.3.1",
     "firebase-admin": "^8.9.2",
     "firebase-functions": "^3.3.0",
     "moment": "^2.24.0",

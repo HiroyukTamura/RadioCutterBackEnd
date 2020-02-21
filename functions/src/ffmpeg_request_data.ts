@@ -3,15 +3,19 @@ import {Util} from "./util";
 
 export class FfmpegRequestData {
 
-    constructor(format: string, station: string, ft: moment.Moment, to: moment.Moment) {
+    constructor(format: string, station: string, ftString: string, toString: string, ft: moment.Moment, to: moment.Moment) {
         this.format = format;
         this.station = station;
+        this.ftString = ftString;
+        this.toString = toString;
         this.ft = ft;
         this.to = to;
     }
 
     readonly format: string;
     readonly station: string;
+    readonly ftString: string;
+    readonly toString: string;
     readonly ft: moment.Moment;
     readonly to: moment.Moment;
 
@@ -33,7 +37,7 @@ export class FfmpegRequestData {
         if (!ftTime.isValid() || !toTime.isValid() || !FfmpegRequestData.isValid(format, station))
             throw new FormatException(data.toString());
 
-        return new FfmpegRequestData(format, station, ftTime, toTime);
+        return new FfmpegRequestData(format, station, ft, to, ftTime, toTime);
     }
 
     private static isValid(format: string, station: string) {
@@ -41,11 +45,26 @@ export class FfmpegRequestData {
     }
 }
 
-class Format {
+export class Format {
     static AAC = 'AAC';
     static MP3 = 'MP3';
     static M4A = 'M4A';
     static WAV = 'WAV';
+
+    static toSuffix(format: string){
+        switch (format) {
+            case Format.AAC:
+                return 'aac';
+            case Format.WAV:
+                return 'wav';
+            case Format.M4A:
+                return 'm4a';
+            case Format.MP3:
+                return 'mp3';
+            default:
+                throw new Error(format);
+        }
+    }
 }
 
 class Station {

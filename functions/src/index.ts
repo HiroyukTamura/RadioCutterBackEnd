@@ -4,6 +4,7 @@ import {CallableContext} from "firebase-functions/lib/providers/https";
 import * as moment from "moment";
 import {FfmpegRequestData} from "./ffmpeg_request_data";
 import {FirestoreClient} from "./firestore_client";
+import {CloudStorage} from "./cloud_storage";
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -118,18 +119,19 @@ function atob(a: string) {
 }
 
 exports.requestRemoteFfmpeg = functions.https.onCall(async (data: any, context: CallableContext) => {
-    let ffmpegRequestData: FfmpegRequestData;
+    let requestData: FfmpegRequestData;
     try {
-        ffmpegRequestData = FfmpegRequestData.parse(data);
+        requestData = FfmpegRequestData.parse(data);
     } catch (e) {
         throw new functions.https.HttpsError('invalid-argument', e.toString());
     }
 
-    await new FirestoreClient().postRemoteFfmpegStatus(data).catch(e => {
-        console.error(e);
-        throw e;
-    });
+    const url = await new CloudStorage().queryFfmpegExportedFileUrl(requestData.format, requestData.station, requestData.ftString);
+    await new FirestoreClient().postRemoteFfmpegStatus(requestData, url);
+    if (url)
+        return;
 
 
 });
+
 // const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
