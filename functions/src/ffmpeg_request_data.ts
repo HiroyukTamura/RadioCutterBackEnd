@@ -1,29 +1,43 @@
-class FfmpegRequestData {
+import * as moment from "moment";
+import {Util} from "./util";
 
+export class FfmpegRequestData {
 
-    constructor(format: string, station: string, ft: number, to: number) {
+    constructor(format: string, station: string, ft: moment.Moment, to: moment.Moment) {
         this.format = format;
         this.station = station;
         this.ft = ft;
         this.to = to;
-        this.isValid();
     }
 
     readonly format: string;
     readonly station: string;
-    readonly ft: number;
-    readonly to: number;
+    readonly ft: moment.Moment;
+    readonly to: moment.Moment;
 
-    isValid(){
-        switch (this.format) {
-            case Format.AAC:
-            case Format.MP3:
-            case Format.M4A:
-            case Format.WAV:
-                return true;
-            default:
-                return false;
-        }
+    /**
+     * @throws FfmpegRequestData
+     * @param data ft, toは`20180514050000`などといったパターンで与えられる
+     */
+    static parse(data: any){
+        if (!Util.isString(data.format) || !Util.isString(data.station) || !Util.isString(data.ft) || !Util.isString(data.to))
+            throw new FormatException(data.toString());
+        const format = data.format as string;
+        const station = data.station as string;
+        const ft = data.ft as string;
+        const to = data.to as string;
+
+        const ftTime = moment('YYYYMMDDMMDDHHmmss', ft);
+        const toTime = moment('YYYYMMDDMMDDHHmmss', to);
+
+        if (!ftTime.isValid() || !toTime.isValid() || !FfmpegRequestData.isValid(format, station))
+            throw new FormatException(data.toString());
+
+        return new FfmpegRequestData(format, station, ftTime, toTime);
+    }
+
+    private static isValid(format: string, station: string) {
+        return Object.keys(Format).includes(format) && Object.keys(Station).includes(station);
     }
 }
 
@@ -34,7 +48,7 @@ class Format {
     static WAV = 'WAV';
 }
 
-class STATION {
+class Station {
     static HBC = "HBC";
     static STV = "STV";
     static AIR_G = "AIR-G";
@@ -94,7 +108,7 @@ class STATION {
     static MBS = "MBS";
     static OBC = "OBC";
     static CCL = "CCL";
-    static 802 = "802";
+    static _802 = "802";
     static FMO = "FMO";
     static CRK = "CRK";
     static KISSFMKOBE = "KISSFMKOBE";
@@ -140,4 +154,10 @@ class STATION {
     static HOUSOU_DAIGAKU = "HOUSOU-DAIGAKU";
     static JOAB = "JOAB";
     static JOAK_FM = "JOAK-FM";
+}
+
+class FormatException extends Error {
+    constructor(msg?: string) {
+        super(msg);
+    }
 }

@@ -1,12 +1,17 @@
 "use strict";
 
 import {CallableContext} from "firebase-functions/lib/providers/https";
+import * as moment from "moment";
+import {FfmpegRequestData} from "./ffmpeg_request_data";
+import {FirestoreClient} from "./firestore_client";
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const { execSync } = require('child_process');
 require('request');
 const rp = require('request-promise');
+
+moment().format();
 
 admin.initializeApp();
 const fireStore = admin.firestore();
@@ -112,4 +117,19 @@ function atob(a: string) {
     return new Buffer(a, 'base64').toString('binary');
 }
 
+exports.requestRemoteFfmpeg = functions.https.onCall(async (data: any, context: CallableContext) => {
+    let ffmpegRequestData: FfmpegRequestData;
+    try {
+        ffmpegRequestData = FfmpegRequestData.parse(data);
+    } catch (e) {
+        throw new functions.https.HttpsError('invalid-argument', e.toString());
+    }
+
+    await new FirestoreClient().postRemoteFfmpegStatus(data).catch(e => {
+        console.error(e);
+        throw e;
+    });
+
+
+});
 // const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
