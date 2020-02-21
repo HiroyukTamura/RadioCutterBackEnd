@@ -1,0 +1,962 @@
+{
+  "StListForAll": {
+    "802": {
+      "stIdarr": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "ABC": {
+      "stIdarr": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "ABS": {
+      "stIdarr": [
+        5
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "AFB": {
+      "stIdarr": [
+        2
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "AIR-G": {
+      "stIdarr": [
+        1
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "ALPHA-STATION": {
+      "stIdarr": [
+        26
+      ],
+      "regionId": "kinki"
+    },
+    "BAYFM78": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "BSN": {
+      "stIdarr": [
+        15
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "BSS": {
+      "stIdarr": [
+        31,
+        32
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "CBC": {
+      "stIdarr": [
+        21,
+        23,
+        24
+      ],
+      "regionId": "chubu"
+    },
+    "CCL": {
+      "stIdarr": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "CRK": {
+      "stIdarr": [
+        26,
+        27,
+        28
+      ],
+      "regionId": "kinki"
+    },
+    "CROSSFM": {
+      "stIdarr": [
+        40
+      ],
+      "regionId": "kyushu"
+    },
+    "CRT": {
+      "stIdarr": [
+        9
+      ],
+      "regionId": "kanto"
+    },
+    "DATEFM": {
+      "stIdarr": [
+        4
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "E-RADIO": {
+      "stIdarr": [
+        25
+      ],
+      "regionId": "kinki"
+    },
+    "FBC": {
+      "stIdarr": [
+        18
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "FM-FUJI": {
+      "stIdarr": [
+        19
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "FMAICHI": {
+      "stIdarr": [
+        21,
+        23,
+        24
+      ],
+      "regionId": "chubu"
+    },
+    "FMF": {
+      "stIdarr": [
+        7
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "FMFUKUI": {
+      "stIdarr": [
+        18
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "FMFUKUOKA": {
+      "stIdarr": [
+        40
+      ],
+      "regionId": "kyushu"
+    },
+    "FMGIFU": {
+      "stIdarr": [
+        21
+      ],
+      "regionId": "chubu"
+    },
+    "FMGUNMA": {
+      "stIdarr": [
+        10
+      ],
+      "regionId": "kanto"
+    },
+    "FMI": {
+      "stIdarr": [
+        3
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "FMJ": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "FMK": {
+      "stIdarr": [
+        43
+      ],
+      "regionId": "kyushu"
+    },
+    "FMKAGAWA": {
+      "stIdarr": [
+        37
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "FMMIE": {
+      "stIdarr": [
+        24
+      ],
+      "regionId": "chubu"
+    },
+    "FMN": {
+      "stIdarr": [
+        20
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "FMNAGASAKI": {
+      "stIdarr": [
+        42
+      ],
+      "regionId": "kyushu"
+    },
+    "FMNIIGATA": {
+      "stIdarr": [
+        15
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "FMO": {
+      "stIdarr": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "FMPORT": {
+      "stIdarr": [
+        15
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "FMT": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "FMTOYAMA": {
+      "stIdarr": [
+        16
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "FMY": {
+      "stIdarr": [
+        35
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "FM_OITA": {
+      "stIdarr": [
+        44
+      ],
+      "regionId": "kyushu"
+    },
+    "FM_OKINAWA": {
+      "stIdarr": [
+        47
+      ],
+      "regionId": "kyushu"
+    },
+    "GBS": {
+      "stIdarr": [
+        21,
+        23,
+        24
+      ],
+      "regionId": "chubu"
+    },
+    "HBC": {
+      "stIdarr": [
+        1
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "HELLOFIVE": {
+      "stIdarr": [
+        17
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "HFM": {
+      "stIdarr": [
+        34
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "HOUSOU-DAIGAKU": {
+      "stIdarr": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "regionId": "zenkoku"
+    },
+    "IBC": {
+      "stIdarr": [
+        3
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "IBS": {
+      "stIdarr": [
+        8
+      ],
+      "regionId": "kanto"
+    },
+    "INT": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "JOAK": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        19,
+        20
+      ],
+      "regionId": "kanto"
+    },
+    "JOAK-FM": {
+      "stIdarr": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "regionId": "zenkoku"
+    },
+    "JOBK": {
+      "stIdarr": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "JOCK": {
+      "stIdarr": [
+        16,
+        17,
+        18,
+        21,
+        22,
+        23,
+        24
+      ],
+      "regionId": "chubu"
+    },
+    "JOEU-FM": {
+      "stIdarr": [
+        38
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "JOFK": {
+      "stIdarr": [
+        31,
+        32,
+        33,
+        34,
+        35
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "JOHK": {
+      "stIdarr": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "JOIK": {
+      "stIdarr": [
+        1
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "JOLK": {
+      "stIdarr": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "regionId": "kyushu"
+    },
+    "JORF": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "JOZK": {
+      "stIdarr": [
+        36,
+        37,
+        38,
+        39
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "JRT": {
+      "stIdarr": [
+        36
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "K-MIX": {
+      "stIdarr": [
+        22
+      ],
+      "regionId": "chubu"
+    },
+    "KBC": {
+      "stIdarr": [
+        40
+      ],
+      "regionId": "kyushu"
+    },
+    "KBS": {
+      "stIdarr": [
+        25,
+        26
+      ],
+      "regionId": "kinki"
+    },
+    "KISSFMKOBE": {
+      "stIdarr": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "KNB": {
+      "stIdarr": [
+        16
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "KRY": {
+      "stIdarr": [
+        35
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "LFR": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "LOVEFM": {
+      "stIdarr": [
+        40
+      ],
+      "regionId": "kyushu"
+    },
+    "MBC": {
+      "stIdarr": [
+        46
+      ],
+      "regionId": "kyushu"
+    },
+    "MBS": {
+      "stIdarr": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "MRO": {
+      "stIdarr": [
+        17
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "MRT": {
+      "stIdarr": [
+        45
+      ],
+      "regionId": "kyushu"
+    },
+    "MYUFM": {
+      "stIdarr": [
+        46
+      ],
+      "regionId": "kyushu"
+    },
+    "NACK5": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "NBC": {
+      "stIdarr": [
+        42
+      ],
+      "regionId": "kyushu"
+    },
+    "NORTHWAVE": {
+      "stIdarr": [
+        1
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "OBC": {
+      "stIdarr": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "OBS": {
+      "stIdarr": [
+        44
+      ],
+      "regionId": "kyushu"
+    },
+    "QRR": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "RAB": {
+      "stIdarr": [
+        2
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "RADIOBERRY": {
+      "stIdarr": [
+        9
+      ],
+      "regionId": "kanto"
+    },
+    "RADIONEO": {
+      "stIdarr": [
+        21,
+        23,
+        24
+      ],
+      "regionId": "chubu"
+    },
+    "RBC": {
+      "stIdarr": [
+        47
+      ],
+      "regionId": "kyushu"
+    },
+    "RCC": {
+      "stIdarr": [
+        34
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "RFC": {
+      "stIdarr": [
+        7
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "RKB": {
+      "stIdarr": [
+        40
+      ],
+      "regionId": "kyushu"
+    },
+    "RKC": {
+      "stIdarr": [
+        39
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "RKK": {
+      "stIdarr": [
+        43
+      ],
+      "regionId": "kyushu"
+    },
+    "RN1": {
+      "stIdarr": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "regionId": "zenkoku"
+    },
+    "RN2": {
+      "stIdarr": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "regionId": "zenkoku"
+    },
+    "RNB": {
+      "stIdarr": [
+        38
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "RNC": {
+      "stIdarr": [
+        37
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "ROK": {
+      "stIdarr": [
+        47
+      ],
+      "regionId": "kyushu"
+    },
+    "RSK": {
+      "stIdarr": [
+        33
+      ],
+      "regionId": "chugoku-shikoku"
+    },
+    "SBC": {
+      "stIdarr": [
+        20
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "SBS": {
+      "stIdarr": [
+        22
+      ],
+      "regionId": "chubu"
+    },
+    "STV": {
+      "stIdarr": [
+        1
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "TBC": {
+      "stIdarr": [
+        4
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "TBS": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "TOKAIRADIO": {
+      "stIdarr": [
+        21,
+        23,
+        24
+      ],
+      "regionId": "chubu"
+    },
+    "WBS": {
+      "stIdarr": [
+        30
+      ],
+      "regionId": "kinki"
+    },
+    "YBC": {
+      "stIdarr": [
+        6
+      ],
+      "regionId": "hokkaido-tohoku"
+    },
+    "YBS": {
+      "stIdarr": [
+        19
+      ],
+      "regionId": "hokuriku-koushinetsu"
+    },
+    "YFM": {
+      "stIdarr": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "regionId": "kanto"
+    },
+    "ZIP-FM": {
+      "stIdarr": [
+        21,
+        23,
+        24
+      ],
+      "regionId": "chubu"
+    }
+  }
+}

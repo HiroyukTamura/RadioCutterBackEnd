@@ -12,13 +12,20 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^4.3.1",
+    "@types/cheerio": "^0.22.16",
+    "@types/ffmpeg-static": "^3.0.0",
+    "@types/request-promise": "^4.1.45",
+    "ffmpeg-static": "^4.0.1",
     "firebase-admin": "^8.9.2",
     "firebase-functions": "^3.3.0",
+    "fs-extra": "^8.1.0",
+    "m3u8-parser": "^4.4.0",
     "moment": "^2.24.0",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "tslint": "^6.0.0",
-    "typescript": "^3.7.5"
+    "typescript": "^3.7.5",
+    "uuid": "^3.4.0"
   },
   "devDependencies": {},
   "private": true,
