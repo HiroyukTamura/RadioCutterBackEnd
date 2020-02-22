@@ -12,7 +12,11 @@ export class Util {
 
     static map2Obj(map: Map<string, string>){
         const obj:any = {};
-        map.forEach((key,value) => obj[key] = value);
+        map.forEach((value,key) => obj[key] = value);
         return obj;
+    }
+
+    static atob(a: string) {
+        return new Buffer(a, 'base64').toString('binary');
     }
 }

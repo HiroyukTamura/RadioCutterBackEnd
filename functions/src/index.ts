@@ -130,8 +130,6 @@ exports.requestRemoteFfmpeg = functions.https.onCall(async (data: any, context: 
     await new FirestoreClient().postRemoteFfmpegStatus(requestData, url);
     if (url)
         return;
-
-
 });
 
 // const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
