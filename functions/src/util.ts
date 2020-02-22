@@ -19,4 +19,10 @@ export class Util {
     static atob(a: string) {
         return new Buffer(a, 'base64').toString('binary');
     }
+
+    static sleep(mills: number) {
+        return new Promise((resolve) => {
+            setTimeout(() => { resolve() }, mills);
+        });
+    }
 }

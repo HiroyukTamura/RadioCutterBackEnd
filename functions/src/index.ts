@@ -3,11 +3,12 @@
 import {CallableContext} from "firebase-functions/lib/providers/https";
 import * as moment from "moment";
 import {FfmpegRequestData} from "./ffmpeg_request_data";
-import {FirestoreClient} from "./firestore_client";
+import {FfmpegStatus, FirestoreClient} from "./firestore_client";
 import {CloudStorage} from "./cloud_storage";
+import * as admin from "firebase-admin";
+import Firestore = admin.firestore.Firestore;
 
 const functions = require('firebase-functions');
-const admin = require('firebase-admin');
 const { execSync } = require('child_process');
 require('request');
 const rp = require('request-promise');
@@ -102,7 +103,7 @@ exports.request1st = functions.https.onCall(async (data: any, context: CallableC
 });
 
 function postError(witchErr: string, e: any) {
-    fireStore.collection('request1st')
+    new Firestore().collection('request1st')
         .doc().set({
         witchErr: witchErr,
         error: e
@@ -126,8 +127,8 @@ exports.requestRemoteFfmpeg = functions.https.onCall(async (data: any, context: 
         throw new functions.https.HttpsError('invalid-argument', e.toString());
     }
 
-    const url = await new CloudStorage().queryFfmpegExportedFileUrl(requestData.format, requestData.station, requestData.ftString);
-    await new FirestoreClient().postRemoteFfmpegStatus(requestData, url);
+    const url = await new CloudStorage().queryFfmpegExportedFileUrl(requestData.format, requestData.station, requestData.ftStr);
+    await new FirestoreClient().postRemoteFfmpegStatus(requestData, FfmpegStatus.PROCESSING, false, url);
     if (url)
         return;
 });

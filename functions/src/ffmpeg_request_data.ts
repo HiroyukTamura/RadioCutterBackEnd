@@ -3,19 +3,19 @@ import {Util} from "./util";
 
 export class FfmpegRequestData {
 
-    constructor(format: string, station: string, ftString: string, toString: string, ft: moment.Moment, to: moment.Moment) {
+    constructor(format: string, station: string, ftStr: string, toStr: string, ft: moment.Moment, to: moment.Moment) {
         this.format = format;
         this.station = station;
-        this.ftString = ftString;
-        this.toString = toString;
+        this.ftStr = ftStr
+        this.toStr = toStr;
         this.ft = ft;
         this.to = to;
     }
 
     readonly format: string;
     readonly station: string;
-    readonly ftString: string;
-    readonly toString: string;
+    readonly ftStr: string;
+    readonly toStr: string;
     readonly ft: moment.Moment;
     readonly to: moment.Moment;
 
@@ -61,6 +61,20 @@ export class Format {
                 return 'm4a';
             case Format.MP3:
                 return 'mp3';
+            default:
+                throw new Error(format);
+        }
+    }
+
+    static toMimeType(format: string) {
+        switch (format) {
+            case Format.AAC:
+            case Format.M4A:
+                return 'audio/aac';
+            case Format.MP3:
+                return 'audio/mpeg';
+            case Format.WAV:
+                return 'audio/wav';
             default:
                 throw new Error(format);
         }

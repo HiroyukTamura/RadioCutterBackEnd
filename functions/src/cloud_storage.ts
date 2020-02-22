@@ -11,12 +11,11 @@ export class CloudStorage {
     };
 
     constructor() {
-        this.bucket = admin.storage().bucket();
+        this.bucket = admin.storage().bucket('gs://radiko-7e63e.appspot.com/');
     }
 
     async queryFfmpegExportedFileUrl(format: string, station: string, ft: string){
-        const suffix = Format.toSuffix(format);
-        const path = `FfmpegExportedFile/${station}/${ft}.${suffix}`;
+        const path = CloudStorage.storagePath(format, station, ft);
         const file = this.bucket.file(path);
         const exists =  await file.exists();
         if (exists) {
@@ -24,5 +23,27 @@ export class CloudStorage {
             return urls[0];
         }
         return;
+    }
+
+    async upload(format: string, station: string, ft: string, localPath: string) {
+        const path = CloudStorage.storagePath(format, station, ft);
+        const file = this.bucket.file(path);
+        const exists = await file.exists();
+        if (exists[0])
+            return;
+        const result = await this.bucket.upload(localPath, {
+            gzip: true,
+            destination: path,
+            metadata: {
+                contentType: Format.toMimeType(format)
+            }
+        });
+        const urlResp = await result[0].getSignedUrl(CloudStorage.CFG);
+        return urlResp[0];
+    }
+
+    private static storagePath(format: string, station: string, ft: string){
+        const suffix = Format.toSuffix(format);
+        return `FfmpegExportedFile/${station}/${ft}.${suffix}`;
     }
 }

@@ -2,31 +2,43 @@ import * as rp from "request-promise";
 import * as fs from "fs-extra";
 import * as cheerio from "cheerio";
 import {Util} from "./util";
+import {Env} from "./env";
+import * as path from "path";
+import * as os from "os";
 
 const {Parser} = require('m3u8-parser');
 
 export class RadikoHttpClient {
+
+    get manifestUrl(): string | undefined {
+        return this._manifestUrl;
+    }
+
     get location(): string | undefined {
         return this._location;
     }
+
     get playlistUrl(): string | undefined {
         return this._playlistUrl;
     }
+
     constructor(station: string, ftStr: string, toStr: string) {
         this.station = station;
         this.ftStr = ftStr;
         this.toStr = toStr;
+        this.txtFilePath = this.genTxtFilePath();
     }
 
     private readonly station: string;
     private readonly ftStr: string;
     private readonly toStr: string;
+    readonly txtFilePath: string;
 
     authToken: string | undefined;
     partialKey: string | undefined;
     private _playlistUrl: string | undefined;
 
-    private manifestUrl: string | undefined;
+    private _manifestUrl: string | undefined;
     private _location: string | undefined;
 
     private static get defaultHeaders(): Map<string, string> {
@@ -111,8 +123,37 @@ export class RadikoHttpClient {
         if (!Util.isString(manifestUrl))
             throw new Error(`invalid url: ${manifestUrl}`);
 
-        this.manifestUrl = manifestUrl;
-        console.log(this.manifestUrl);
+        this._manifestUrl = manifestUrl;
+        console.log(this._manifestUrl);
+    }
+
+    async downloadAllAac() {
+        const resp = await rp(this.manifestUrl!!);
+        const parser = new Parser();
+        parser.push(resp.toString());
+        parser.end();
+
+        const segments = parser.manifest.segments as Array<any>;
+        let count = 0;
+        const localPathList: Array<string> = [];
+        for (const segment of segments) {
+            const localPath = path.join(os.tmpdir(), `${count}.aac`);
+            localPathList.push(localPath);
+            const data = await rp({uri: segment.uri, encoding: null});
+            await fs.writeFile(localPath, data);
+            count++;
+            await Util.sleep(250);
+            console.log(count);
+        }
+        const string = localPathList.map((value, index) => `file '${value}'`).join('\n');
+        await fs.writeFile(this.genTxtFilePath(), string);
+    }
+
+    private genTxtFilePath() {
+        if (Env.IS_RELEASE)
+            return path.join(os.tmpdir(), `${this.station}_${this.ftStr}.txt`);
+        else
+            return path.join(__dirname, `${this.station}_${this.ftStr}.txt`);
     }
 }
 
@@ -122,6 +163,7 @@ export class Request1stResult {
         this.keyLen = keyLen;
         this.keyOffset = keyOffset;
     }
+
     readonly authToken: string;
     readonly keyLen: number;
     readonly keyOffset: number;
