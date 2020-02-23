@@ -153,7 +153,7 @@ export class RadikoHttpClient {
         if (Env.IS_RELEASE)
             return path.join(os.tmpdir(), `${this.station}_${this.ftStr}.txt`);
         else
-            return path.join(__dirname, `${this.station}_${this.ftStr}.txt`);
+            return path.join(__dirname, `../test/output/${this.station}_${this.ftStr}.txt`);
     }
 }
 

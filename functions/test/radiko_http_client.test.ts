@@ -36,11 +36,16 @@ describe('all', () => {
     const ftTime = moment('YYYYMMDDMMDDHHmmss', ftStr);
     const toTime = moment('YYYYMMDDMMDDHHmmss', toStr);
 
-    const format = Format.MP3;
+    const format = Format.M4A;
     const firestoreClient = new FirestoreClient();
 
     const client = new RadikoHttpClient(STATION, ftStr, toStr);
     let request1stResult: Request1stResult;
+
+    beforeAll(async () => {
+        const data = new FfmpegRequestData(format, STATION, ftStr, toStr, ftTime, toTime);
+        await firestoreClient.postRemoteFfmpegStatus(data, FfmpegStatus.PROCESSING, false);
+    });
 
     test('requestStationUrl', async () => {
         await client.requestStationUrl();

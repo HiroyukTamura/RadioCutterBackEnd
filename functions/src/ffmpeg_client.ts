@@ -34,19 +34,7 @@ export class FfmpegTask {
                 reject();
             }, 1000 * 60 * 20);
 
-            const ffmpeg = cp.spawn(ffmpeg_static, [
-                '-protocol_whitelist',
-                'file,http,https,tcp,tls,crypto',
-                '-safe',
-                '0',
-                '-f',
-                'concat',
-                '-i',
-                this.txtFile,
-                "-c",
-                "copy",
-                this.outputPath,
-            ]);
+            const ffmpeg = cp.spawn(ffmpeg_static, this.genFfmpegCommand());
 
             ffmpeg.stdout
                 .on('data', c => output += c)
@@ -75,5 +63,60 @@ export class FfmpegTask {
             return path.join(os.tmpdir(), `${this.ffmpegRequestData.station}_${this.ffmpegRequestData.ftStr}.${format}`);
         else
             return path.join(__dirname, `../test/output/${this.ffmpegRequestData.station}_${this.ffmpegRequestData.ftStr}.${format}`);
+    }
+
+    private genFfmpegCommand(){
+        switch (this.ffmpegRequestData.format) {
+            case Format.AAC:
+                return [
+                    '-protocol_whitelist',
+                    'file,http,https,tcp,tls,crypto',
+                    '-safe',
+                    '0',
+                    '-f',
+                    'concat',
+                    '-y',
+                    '-i',
+                    this.txtFile,
+                    "-c",
+                    "copy",
+                    this.outputPath,
+                ];
+            case Format.MP3:
+            case Format.WAV:
+                return [
+                    '-protocol_whitelist',
+                    'file,http,https,tcp,tls,crypto',
+                    '-safe',
+                    '0',
+                    '-f',
+                    'concat',
+                    '-y',
+                    '-i',
+                    this.txtFile,
+                    "-c:a",
+                    "libmp3lame",
+                    this.outputPath,
+                ];
+            case Format.M4A:
+                return [
+                    '-protocol_whitelist',
+                    'file,http,https,tcp,tls,crypto',
+                    '-safe',
+                    '0',
+                    '-f',
+                    'concat',
+                    '-y',
+                    '-i',
+                    this.txtFile,
+                    "-acodec",
+                    "copy",
+                    "-bsf",
+                    "aac_adtstoasc",
+                    this.outputPath,
+                ];
+            default:
+                throw new Error();
+        }
     }
 }

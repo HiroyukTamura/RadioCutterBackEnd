@@ -6,7 +6,7 @@ export class FfmpegRequestData {
     constructor(format: string, station: string, ftStr: string, toStr: string, ft: moment.Moment, to: moment.Moment) {
         this.format = format;
         this.station = station;
-        this.ftStr = ftStr
+        this.ftStr = ftStr;
         this.toStr = toStr;
         this.ft = ft;
         this.to = to;
